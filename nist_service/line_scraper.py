@@ -39,7 +39,7 @@ class LineScraper:
                 "submit": self.config.submit,
             }
         )
-        return
+        return self.response.text
 
     def to_csv(self):
         output_file_name = f"{self.config.spectra}-{self.config.lower_wavelength}-{self.config.upper_wavelength}.csv".replace(
