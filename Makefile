@@ -13,5 +13,5 @@ shell: build
 	${RUN_IN_DOCKER} --entrypoint '' -it ${DOCKER_IMAGE_NAME} /bin/bash
 
 .PHONY: run
-run: build
+run: 
 	${RUN_IN_DOCKER} --entrypoint '' -it ${DOCKER_IMAGE_NAME} python app.py
