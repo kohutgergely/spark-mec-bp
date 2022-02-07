@@ -13,7 +13,7 @@ class LineScraper:
     def request_lines(self):
         logging.info(
             f"Retrieving spectrum line information from NIST database for the following query: {self.config.spectra}")
-        self.response = requests.get(
+        with requests.get(
             url=self.config.url,
             params=
             {
@@ -38,11 +38,6 @@ class LineScraper:
                 "g_out": self.config.level_information_g,
                 "submit": self.config.submit,
             }
-        )
-        return self.response.text
-
-    def to_csv(self):
-        output_file_name = f"{self.config.spectra}-{self.config.lower_wavelength}-{self.config.upper_wavelength}.csv".replace(
-            " ", "_")
-        with open(output_file_name, "w") as file:
-            file.write(self.response.text)
+        ) as response:
+            response.raise_for_status()
+            return response.text

@@ -8,5 +8,4 @@ config = LineScraperConfig(
     upper_wavelength=800
 )
 line_scraper = LineScraper(config)
-line_scraper.request_lines()
-line_scraper.to_csv()
+print(line_scraper.request_lines())
