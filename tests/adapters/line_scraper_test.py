@@ -1,26 +1,22 @@
 import pytest
 
-from nist_service.line_scraper_config import LineScraperConfig
-from nist_service.line_scraper import LineScraper
+from configs.nist_spectrum_line_adapter_config import SpectrumLineConfig
+from adapters.nist_spectrum_line_adapter import SpectrumLineAdapter
 
 
 @pytest.fixture()
 def correct_line_scraper_config():
-    config = LineScraperConfig(
-        spectra="Fe I",
-        lower_wavelength=200,
-        upper_wavelength=400
-    )
+    config = SpectrumLineConfig()
     return config
 
 
 @pytest.fixture()
 def correct_line_scraper_request_params(correct_line_scraper_config):
     return {
-        "spectra": correct_line_scraper_config.spectra,
+        "spectra": "dummy spectrum",
+        "low_w": 200,
+        "upp_w": 300,
         "limits_type": correct_line_scraper_config.measure_type,
-        "low_w": correct_line_scraper_config.lower_wavelength,
-        "upp_w": correct_line_scraper_config.upper_wavelength,
         "unit": correct_line_scraper_config.wavelength_units,
         "de": correct_line_scraper_config.de,
         "format": correct_line_scraper_config.output_format,
@@ -39,7 +35,6 @@ def correct_line_scraper_request_params(correct_line_scraper_config):
         "submit": correct_line_scraper_config.submit,
     }
 
-
 def test_line_scraper_get_request_is_called_with_valid_parameters(
         mocker,
         correct_line_scraper_config,
@@ -48,20 +43,30 @@ def test_line_scraper_get_request_is_called_with_valid_parameters(
 
     mocked_get = mocker.patch("requests.get")
 
-    line_scraper = LineScraper(correct_line_scraper_config)
-    line_scraper.request_lines()
+    line_scraper = SpectrumLineAdapter(correct_line_scraper_config)
+    line_scraper.request_data(
+        correct_line_scraper_request_params["spectra"],
+        correct_line_scraper_request_params["low_w"],
+        correct_line_scraper_request_params["upp_w"]
+    )
     mocked_get.assert_called_once_with(
         url=correct_line_scraper_config.url,
         params=correct_line_scraper_request_params
     )
 
-
-def test_line_scraper_response_raise_for_status_is_called(mocker, correct_line_scraper_config):
-
+def test_line_scraper_response_raise_for_status_is_called(
+        mocker,
+        correct_line_scraper_config,
+        correct_line_scraper_request_params
+):
     mocked_get = mocker.patch("requests.get")
     with mocked_get() as response:
         response.raise_for_status.side_effect = Exception()
 
     with pytest.raises(Exception):
-        line_scraper = LineScraper(correct_line_scraper_config)
-        line_scraper.request_lines()
+        line_scraper = SpectrumLineAdapter(correct_line_scraper_config)
+        line_scraper.request_data(
+            correct_line_scraper_request_params["spectra"],
+            correct_line_scraper_request_params["low_w"],
+            correct_line_scraper_request_params["upp_w"]
+        )

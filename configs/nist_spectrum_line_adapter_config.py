@@ -1,7 +1,5 @@
-class LineScraperConfig:
-    
+class SpectrumLineConfig:
     url = "https://physics.nist.gov/cgi-bin/ASD/lines1.pl"
-    
     measure_type = 0
     wavelength_units = 1
     de = 0
@@ -19,14 +17,3 @@ class LineScraperConfig:
     level_information_energies = "on"
     submit = "Retrieve Data"
     level_information_g = "on"
-
-    def __init__(
-        self,
-        spectra: str,
-        lower_wavelength: int,
-        upper_wavelength: int,
-
-    ) -> None:
-        self.spectra = spectra
-        self.lower_wavelength = lower_wavelength
-        self.upper_wavelength = upper_wavelength

@@ -1,4 +1,4 @@
-from nist_service.line_scraper_config import LineScraperConfig
+from configs.nist_spectrum_line_adapter_config import SpectrumLineConfig
 
 class ValidDummyLineScraperConfig:
 
@@ -27,15 +27,8 @@ class ValidDummyLineScraperConfig:
 
 def test_line_scraper_config_parameters_are_correct():
     expected_config = ValidDummyLineScraperConfig()
-    actual_config = LineScraperConfig(
-        spectra = "Fe I",
-        lower_wavelength=200,
-        upper_wavelength=400
-    )
+    actual_config = SpectrumLineConfig()
     assert expected_config.url == actual_config.url
-    assert expected_config.spectra == actual_config.spectra
-    assert expected_config.lower_wavelength == actual_config.lower_wavelength
-    assert expected_config.upper_wavelength == actual_config.upper_wavelength
     assert expected_config.measure_type == actual_config.measure_type
     assert expected_config.wavelength_units == actual_config.wavelength_units
     assert expected_config.de == actual_config.de

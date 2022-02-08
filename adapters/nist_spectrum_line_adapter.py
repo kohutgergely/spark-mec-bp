@@ -1,26 +1,30 @@
-from nist_service.line_scraper_config import LineScraperConfig
+from configs.nist_spectrum_line_adapter_config import SpectrumLineConfig
 import logging
 import requests
 
 logging.basicConfig(level=logging.INFO)
 
 
-class LineScraper:
+class SpectrumLineAdapter:
 
-    def __init__(self, config: LineScraperConfig) -> None:
+    def __init__(self, config: SpectrumLineConfig) -> None:
         self.config = config
 
-    def request_lines(self):
+    def request_data(
+            self,
+            spectrum: str,
+            lower_wavelength: int,
+            upper_wavelength: int
+    ):
         logging.info(
-            f"Retrieving spectrum line information from NIST database for the following query: {self.config.spectra}")
+            f"Retrieving spectrum line information from NIST database for the following query: {spectrum}")
         with requests.get(
             url=self.config.url,
-            params=
-            {
-                "spectra": self.config.spectra,
+            params={
+                "spectra": spectrum,
+                "low_w": lower_wavelength,
+                "upp_w": upper_wavelength,
                 "limits_type": self.config.measure_type,
-                "low_w": self.config.lower_wavelength,
-                "upp_w": self.config.upper_wavelength,
                 "unit": self.config.wavelength_units,
                 "de": self.config.de,
                 "format": self.config.output_format,
