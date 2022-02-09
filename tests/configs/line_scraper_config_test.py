@@ -1,4 +1,4 @@
-from configs.nist_spectrum_line_adapter_config import SpectrumLineConfig
+from configs.nist_spectrum_line_adapter_config import SpectrumLineAdapterConfig
 
 class ValidDummyLineScraperConfig:
 
@@ -27,7 +27,7 @@ class ValidDummyLineScraperConfig:
 
 def test_line_scraper_config_parameters_are_correct():
     expected_config = ValidDummyLineScraperConfig()
-    actual_config = SpectrumLineConfig()
+    actual_config = SpectrumLineAdapterConfig()
     assert expected_config.url == actual_config.url
     assert expected_config.measure_type == actual_config.measure_type
     assert expected_config.wavelength_units == actual_config.wavelength_units

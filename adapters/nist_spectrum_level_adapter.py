@@ -1,13 +1,12 @@
-from configs.nist_spectrum_level_adapter_config import SpectrumLevelConfig
+from configs.nist_spectrum_level_adapter_config import SpectrumLevelAdapterConfig
+from validators.nist_validators import NistBaseResponseValidator
 import logging
 import requests
-
-logging.basicConfig(level=logging.INFO)
 
 
 class SpectrumLevelAdapter:
 
-    def __init__(self, config: SpectrumLevelConfig) -> None:
+    def __init__(self, config: SpectrumLevelAdapterConfig) -> None:
         self.config = config
 
     def request_data(
@@ -32,4 +31,14 @@ class SpectrumLevelAdapter:
                 "submit": self.config.submit
             }
         ) as response:
+            try:
+                response.raise_for_status()
+                response_validation = NistBaseResponseValidator(response.text).validate()
+                if response_validation["result"] is False:
+                    raise SyntaxError(response_validation["error"])
+
+            except Exception as error:
+                logging.error(str(error))
+                raise error
+
             return response.text

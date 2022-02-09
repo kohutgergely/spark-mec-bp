@@ -1,4 +1,4 @@
-class SpectrumLineConfig:
+class SpectrumLineAdapterConfig:
     url = "https://physics.nist.gov/cgi-bin/ASD/lines1.pl"
     measure_type = 0
     wavelength_units = 1

@@ -1,4 +1,4 @@
-class SpectrumLevelConfig:
+class SpectrumLevelAdapterConfig:
     url = "https://physics.nist.gov/cgi-bin/ASD/energy1.pl"
     de = 0
     units = 0
