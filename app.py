@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import datetime
 from configs.nist_spectrum_level_adapter_config import SpectrumLevelAdapterConfig
 from configs.nist_ionization_energy_adapter_config import IonizationEnergyAdapterConfig
@@ -7,6 +6,7 @@ from configs.nist_spectrum_line_adapter_config import SpectrumLineAdapterConfig
 from adapters.nist_spectrum_level_adapter import SpectrumLevelAdapter
 from adapters.nist_spectrum_line_adapter import SpectrumLineAdapter
 from adapters.nist_ionization_energy_adapter import IonizationEnergyAdapter
+from lib import helper_functions
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -20,23 +20,28 @@ console.setFormatter(formatter)
 logger.addHandler(console)
 
 
-config = SpectrumLineAdapterConfig()
-line_scraper = SpectrumLineAdapter(config)
-print(line_scraper.request_data(
-    spectrum="Fe I",
-    lower_wavelength=300,
-    upper_wavelength=500)
-)
+# spectrum_line_config = SpectrumLineAdapterConfig()
+# spectrum_line_adapter = SpectrumLineAdapter(config)
+# print(spectrum_line_adapter.request_data(
+#     spectrum="Fe I",
+#     lower_wavelength=300,
+#     upper_wavelength=500)
+# )
+#
 
-config = SpectrumLevelAdapterConfig()
-line_scraper = SpectrumLevelAdapter(config)
-print(line_scraper.request_data(
-    spectrum="Fe I",
-    temperature=2))
+requested_spectrum = "Fe III"
+requested_temperature = 5
+ion_adapter_config = IonizationEnergyAdapterConfig()
+ionization_energy_adapter = IonizationEnergyAdapter(ion_adapter_config)
+ion_data = ionization_energy_adapter.request_data(spectrum=requested_spectrum)
 
-config = IonizationEnergyAdapterConfig()
-line_scraper = IonizationEnergyAdapter(config)
-print(line_scraper.request_data(spectrum="Ar II"))
+spectrum_level_config = SpectrumLevelAdapterConfig()
+spectrum_level_adapter = SpectrumLevelAdapter(spectrum_level_config)
+spectrum_level_data = spectrum_level_adapter.request_data(spectrum=requested_spectrum, temperature=requested_temperature)
 
 
+ionization_energy = helper_functions.get_ionization_energy(requested_spectrum, ion_data)
+partition_function = helper_functions.get_partition_function(spectrum_level_data)
+
+print(f"Spectrum={requested_spectrum}, IE={ionization_energy}, Z={partition_function}")
 
