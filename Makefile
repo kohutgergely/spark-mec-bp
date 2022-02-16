@@ -9,7 +9,7 @@ build:
 	docker build --tag ${DOCKER_IMAGE_NAME} .
 
 .PHONY: shell
-shell: build
+shell:
 	${RUN_IN_DOCKER} --entrypoint '' -it ${DOCKER_IMAGE_NAME} /bin/bash
 
 .PHONY: run
