@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Feb 16 11:47:32 2022
-
-@author: Attila Kohut
-"""
-
-from IPython import get_ipython
-get_ipython().magic('reset -sf')
-
 import numpy as np
 from numpy import genfromtxt
 from scipy.signal import find_peaks, peak_prominences
