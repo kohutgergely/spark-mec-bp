@@ -1,11 +1,11 @@
+import yaml
 import numpy as np
-# from numpy import genfromtxt
+
 from scipy.signal import find_peaks, peak_prominences
 from scipy import sparse
 from scipy.sparse import linalg
 from numpy.linalg import norm
 from matplotlib import pyplot as plt
-# import codecs
 
 def find_nearest(array, value):
     array = np.asarray(array)
@@ -83,56 +83,59 @@ def integral(spectrum, height, wlen):
         integrals[i,1] = peak_int
     return integrals
 
+def read_config_file(config_file: str) -> dict:
+    with open(config_file, "r") as file:
+        config = yaml.safe_load(file)
+    return config
 
-###Input
-##Spectrum filename
-filename = "AuAgCu_15-15-70_2eV_1E19_10000res"
+def prepare_baseline_corrected_spectrum(
+    filename: str,
+    ratio: float,
+    lam: int,
+    niter: int
+    ) -> np.array:
+    spectrum = np.loadtxt(filename, dtype=None, delimiter='\t')
+    return corr_spectrum(spectrum, ratio, lam, niter)
 
-##Baseline correction
-ratio = 1E-5
-lam = 1000
-niter = 10
+def plot_baseline_corrected_spectrum(spectrum):
+    plt.plot(spectrum[:,0], spectrum[:,1])
+    plt.xlim([np.amin(spectrum[:,0]), np.amax(spectrum[:,0])])
+    plt.ylim([np.amin(spectrum[:,1]), np.amax(spectrum[:,1])])
+    plt.xlabel('Wavelength (nm)')
+    plt.ylabel('Intensity (a.u.)')
+    plt.title('Original spectrum and baseline')
+    plt.figure()
 
-##Peak finder
-height = 100
-wlen = 40
+def plot_detected_peaks(spectrum, peak_indices, wl_start, wl_end):
+    wl_start_idx = find_nearest(spectrum[:,0], wl_start)
+    wl_end_idx = find_nearest(spectrum[:,0], wl_end)
+    intensity_min = np.amin(spectrum[wl_start_idx:wl_end_idx,1]) - np.amax(spectrum[wl_start_idx:wl_end_idx,1])*0.02  #lower intensity limit for plots
+    intensity_max = np.amax(spectrum[wl_start_idx:wl_end_idx,1]) #upper intensity limit for plots
+    plt.plot(spectrum[:,0], spectrum[:,1])
+    plt.plot(spectrum[peak_indices[:,0],0], spectrum[peak_indices[:,0],1], "4")
+    plt.plot(spectrum[peak_indices[:,1],0], spectrum[peak_indices[:,1],1], "^")
+    plt.plot(spectrum[peak_indices[:,2],0], spectrum[peak_indices[:,2],1], "3")
+    plt.xlim([wl_start, wl_end])
+    plt.ylim([intensity_min, intensity_max])
+    plt.xlabel('Wavelength (nm)')
+    plt.ylabel('Intensity (a.u.)')
+    plt.title('Peaks and peak borders')
+    plt.figure()
 
-##Plotting a narrow wavelength range
-wl_start = 509          #lower wavelength limit for plots
-wl_end = 523 #upper wavelength limit for plots
+if __name__ == "__main__":
+    config = read_config_file("prepare_spectrum_config.yaml")
+    filename = config["input_filename"]
+    ratio = float(config["baseline_correction"]["ratio"])
+    lam = config["baseline_correction"]["lam"]
+    niter = config["baseline_correction"]["niter"]
+    height = config["peak_finder"]["height"]
+    wlen = config["peak_finder"]["wlen"]
+    wl_start = config["plot_options"]["wl_start"]
+    wl_end = config["plot_options"]["wl_end"]
 
-###Prepare spectrum
-spectrum = np.loadtxt(filename+".txt", dtype=None, delimiter='\t')
-spectrum = corr_spectrum(spectrum, ratio, lam, niter)
-peak_indices = peakfinder(spectrum, height, wlen)
-peak_integrals = integral(spectrum, height, wlen)
-np.savetxt(filename+"_integrals.txt", peak_integrals, fmt='%.6e')
-
-
-###Plotting
-##Overview plot for the baseline
-plt.plot(spectrum[:,0], spectrum[:,1])
-plt.plot(spectrum[:,0], baseline_arPLS(spectrum[:,1], ratio, lam, niter))
-plt.xlim([np.amin(spectrum[:,0]), np.amax(spectrum[:,0])])
-plt.ylim([np.amin(spectrum[:,1]), np.amax(spectrum[:,1])])
-plt.xlabel('Wavelength (nm)')
-plt.ylabel('Intensity (a.u.)')
-plt.title('Original spectrum and baseline')
-plt.figure()
-
-
-##Close up for peak detection
-wl_start_idx = find_nearest(spectrum[:,0], wl_start)
-wl_end_idx = find_nearest(spectrum[:,0], wl_end)
-intensity_min = np.amin(spectrum[wl_start_idx:wl_end_idx,1]) - np.amax(spectrum[wl_start_idx:wl_end_idx,1])*0.02  #lower intensity limit for plots
-intensity_max = np.amax(spectrum[wl_start_idx:wl_end_idx,1]) #upper intensity limit for plots
-plt.plot(spectrum[:,0], spectrum[:,1])
-plt.plot(spectrum[peak_indices[:,0],0], spectrum[peak_indices[:,0],1], "4")
-plt.plot(spectrum[peak_indices[:,1],0], spectrum[peak_indices[:,1],1], "^")
-plt.plot(spectrum[peak_indices[:,2],0], spectrum[peak_indices[:,2],1], "3")
-plt.xlim([wl_start, wl_end])
-plt.ylim([intensity_min, intensity_max])
-plt.xlabel('Wavelength (nm)')
-plt.ylabel('Intensity (a.u.)')
-plt.title('Peaks and peak borders')
-plt.figure()
+    baseline_corrected_spectrum = prepare_baseline_corrected_spectrum(filename, ratio, lam, niter)
+    peak_indices = peakfinder(baseline_corrected_spectrum, height, wlen)
+    peak_integrals = integral(baseline_corrected_spectrum, height, wlen)
+    np.savetxt(filename+"_integrals.txt", peak_integrals, fmt='%.6e')
+    plot_baseline_corrected_spectrum(baseline_corrected_spectrum)
+    plot_detected_peaks(baseline_corrected_spectrum, peak_indices, wl_start, wl_end)

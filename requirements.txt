@@ -1,6 +1,7 @@
 requests
 pytest
 pytest-mock
+pyyaml
 beautifulsoup4
 pandas
 numpy
