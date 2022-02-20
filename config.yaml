@@ -1,0 +1,23 @@
+prepare_spectrum:
+  enabled: true
+  input_filename: "AuAgCu_15-15-70_2eV_1E19_10000res.txt"
+  output_filename: "AuAgCu_15-15-70_2eV_1E19_10000res_integrals.txt"
+  baseline_correction:
+    ratio: 1E-5
+    lam: 1000
+    niter: 10
+  peak_finder:
+    height: 100
+    wlen: 40
+  plot_options:
+    wl_start: 509
+    wl_end: 523
+
+gather_data:
+  enabled: true
+  species: "Au;Ag;Cu"
+  input_filename: "AuAgCu_15-15-70_2eV_1E19_10000res_integrals.txt"
+  output_filename: 
+  lower_wavelength: 200
+  upper_wavelength: 400
+

@@ -1,5 +1,6 @@
 import yaml
 import numpy as np
+import lib.helper_functions as helper_functions
 
 from scipy.signal import find_peaks, peak_prominences
 from scipy import sparse
@@ -83,11 +84,6 @@ def integral(spectrum, height, wlen):
         integrals[i,1] = peak_int
     return integrals
 
-def read_config_file(config_file: str) -> dict:
-    with open(config_file, "r") as file:
-        config = yaml.safe_load(file)
-    return config
-
 def prepare_baseline_corrected_spectrum(
     filename: str,
     ratio: float,
@@ -122,20 +118,30 @@ def plot_detected_peaks(spectrum, peak_indices, wl_start, wl_end):
     plt.title('Peaks and peak borders')
     plt.figure()
 
-if __name__ == "__main__":
-    config = read_config_file("prepare_spectrum_config.yaml")
-    filename = config["input_filename"]
-    ratio = float(config["baseline_correction"]["ratio"])
-    lam = config["baseline_correction"]["lam"]
-    niter = config["baseline_correction"]["niter"]
-    height = config["peak_finder"]["height"]
-    wlen = config["peak_finder"]["wlen"]
-    wl_start = config["plot_options"]["wl_start"]
-    wl_end = config["plot_options"]["wl_end"]
-
-    baseline_corrected_spectrum = prepare_baseline_corrected_spectrum(filename, ratio, lam, niter)
-    peak_indices = peakfinder(baseline_corrected_spectrum, height, wlen)
+def calculate_integrals(baseline_corrected_spectrum, height, wlen, output_filename=None):
     peak_integrals = integral(baseline_corrected_spectrum, height, wlen)
-    np.savetxt(filename+"_integrals.txt", peak_integrals, fmt='%.6e')
-    plot_baseline_corrected_spectrum(baseline_corrected_spectrum)
-    plot_detected_peaks(baseline_corrected_spectrum, peak_indices, wl_start, wl_end)
+    if output_filename:
+        np.savetxt(output_filename, peak_integrals, fmt='%.6e')
+    return peak_integrals
+
+def main(config):
+    if config["enabled"]:
+        filename = config["input_filename"]
+        output_filename = config["output_filename"]
+        ratio = float(config["baseline_correction"]["ratio"])
+        lam = config["baseline_correction"]["lam"]
+        niter = config["baseline_correction"]["niter"]
+        height = config["peak_finder"]["height"]
+        wlen = config["peak_finder"]["wlen"]
+        wl_start = config["plot_options"]["wl_start"]
+        wl_end = config["plot_options"]["wl_end"]
+
+        baseline_corrected_spectrum = prepare_baseline_corrected_spectrum(filename, ratio, lam, niter)
+        peak_indices = peakfinder(baseline_corrected_spectrum, height, wlen)
+        calculate_integrals(baseline_corrected_spectrum, height, wlen, output_filename=output_filename)
+        plot_baseline_corrected_spectrum(baseline_corrected_spectrum)
+        plot_detected_peaks(baseline_corrected_spectrum, peak_indices, wl_start, wl_end)
+
+if __name__ == "__main__":
+    config = helper_functions.read_config_file("config.yaml")
+    main(config["prepare_spectrum"])
