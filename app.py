@@ -20,14 +20,14 @@ console.setFormatter(formatter)
 logger.addHandler(console)
 
 
-# spectrum_line_config = SpectrumLineAdapterConfig()
-# spectrum_line_adapter = SpectrumLineAdapter(config)
-# print(spectrum_line_adapter.request_data(
-#     spectrum="Fe I",
-#     lower_wavelength=300,
-#     upper_wavelength=500)
-# )
-#
+spectrum_line_config = SpectrumLineAdapterConfig()
+spectrum_line_adapter = SpectrumLineAdapter(spectrum_line_config)
+print(spectrum_line_adapter.request_data(
+    spectrum="Fe I",
+    lower_wavelength=300,
+    upper_wavelength=500)
+)
+
 
 requested_spectrum = "Fe III"
 requested_temperature = 5
