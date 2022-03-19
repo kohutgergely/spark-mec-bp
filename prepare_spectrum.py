@@ -18,6 +18,7 @@ def find_nearest(array, value):
 
 
 def baseline_arPLS(y, ratio, lam, niter, full_output=False):
+
     L = len(y)
 
     diag = np.ones(L - 2)
@@ -30,20 +31,16 @@ def baseline_arPLS(y, ratio, lam, niter, full_output=False):
 
     crit = 1
     count = 0
-
     while crit > ratio:
+    
         z = linalg.spsolve(W + H, W * y)
         d = y - z
         dn = d[d < 0]
 
         m = np.mean(dn)
         s = np.std(dn)
-        with warnings.catch_warnings():
-            warnings.filterwarnings("error")
-            try:
-                w_new = 1 / (1 + np.exp(2 * (d - (2 * s - m)) / s))
-            except RuntimeWarning as error:
-                logging.info(str(error))
+        
+        w_new = 1 / (1 + np.exp(2 * (d - (2 * s - m)) / s))
         crit = norm(w_new - w) / norm(w)
 
         w = w_new

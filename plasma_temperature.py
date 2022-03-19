@@ -1,9 +1,11 @@
+#%%
 import numpy as np
 from numpy import genfromtxt
 from matplotlib import pyplot as plt
 import lib.helper_functions as helper_functions
 import pandas as pd
 import scipy.stats
+import logging
 
 ###Constants###
 m = 9.10938291E-28  # g
@@ -132,30 +134,55 @@ def SBLP(ne_init, T_init, atom_peak_table, ion_peak_table, integrals_with_consta
 
     return np.array([T, ne, R2])
 
-def BPlot2(peak_table, integrals_with_constants):
-    peak_data = helper_functions.find_constants_closest_to_values(peak_table, integrals_with_constants).to_numpy()
-    ln = np.log(np.divide(np.multiply(peak_data[:, 5], peak_data[:, 1] * 1E-7),
-                          np.multiply(h * c * peak_data[:, 3], peak_data[:, 2])))
+def calculate_boltzmann_parameters(target_lines: list, integrals_with_constants: pd.DataFrame):
+    target_lines_series = pd.Series(target_lines, name="selected_wavelengths")
+    peak_data = helper_functions.find_constants_closest_to_values(target_lines_series, integrals_with_constants).to_numpy()
+    ln = np.log(
+            np.divide(
+                np.multiply(peak_data[:, 5], peak_data[:, 1] * 1E-7),
+                np.multiply(h * c * peak_data[:, 3], peak_data[:, 2])
+            )
+        )
     E = peak_data[:, 4]
     return E, ln
 
-def calculate_boltzmann_plot_params(species: list, integrals_with_constants: pd.DataFrame):
-    species_series = pd.Series(species, name="selected_wavelengths")
-    E, ln = BPlot2(species_series, integrals_with_constants)
+def fit_boltzmann_params(E: float, ln: float):
     slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(E, ln)
+    return slope, intercept, r_value**2
+
+def calculate_temperature_from_boltzmann_parameters(slope: float, intercept: float):
     T = np.abs(-1 / (0.695035 * slope))
     n = np.exp(intercept)
-    return np.array([T, n, r_value**2])
+    return T, n
+
+def plot_boltzmann_params(species_name: str, E: float, ln: float, slope: float, intercept: float):
+    plt.plot(E, ln, "o")
+    plt.plot(E, E * slope + intercept)
+    plt.xlabel('Upper energy level (cm-1)')
+    plt.ylabel('log of line intensity (a.u.)')
+    plt.title(f'Classical Boltzmann plot of {species_name} lines')
+    plt.figure()
+
+def calculate_boltzmann_plots(species_name: str, traget_lines: list, integrals_with_constants: pd.DataFrame, plot=True):
+    E, ln = calculate_boltzmann_parameters(traget_lines, integrals_with_constants)
+    slope, intercept, r_square = fit_boltzmann_params(E, ln)
+    T, n = calculate_temperature_from_boltzmann_parameters(slope, intercept)
+    logging.info(f"Temperature from Boltzmann plot of {species_name} lines: {T:10.6f} K with an R2: {r_square:10.6f}")
+    if plot:
+        plot_boltzmann_params(species_name, E, ln, slope, intercept)
+
+    return T, n, r_square
 
 def main(config):
     if config["enabled"]:
+        target_lines = {
+            "CuI": np.array([465.11, 510.55, 515.32, 521.82]),
+            "CuII": np.array([495.36, 512.18, 518.34])
+        }
         integrals_with_constants = pd.read_csv((config["input_filename"]), sep="\s+",
                                                names=["exp_wl(nm)", "obs_wl_air(nm)", "Aki(s^-1)", "g_k", "Ek(cm-1)",
                                                       "intensity"])
-        CuI_species = [465.11, 510.55, 515.32, 521.82]
-        BPlot_CuI_results = calculate_boltzmann_plot_params(CuI_species, integrals_with_constants)
-        print(BPlot_CuI_results)
-
+        calculate_boltzmann_plots("CuI", target_lines["CuI"], integrals_with_constants)
 
 
 
@@ -167,7 +194,7 @@ def main(config):
         # BPlot_CuI_fit = np.polyfit(BPlot_CuI[:, 0], BPlot_CuI[:, 1], 1)
         # print('Temperature from Boltzmann plot of Cu I lines:', BPlot_CuI_results[0], 'K', 'with an R2:',
         #       BPlot_CuI_results[2])
-        #
+        
         # plt.plot(BPlot_CuI[:, 0], BPlot_CuI[:, 1], "o")
         # plt.plot(BPlot_CuI[:, 0], BPlot_CuI[:, 0] * BPlot_CuI_fit[0] + BPlot_CuI_fit[1])
         # plt.xlabel('Upper energy level (cm-1)')

@@ -6,7 +6,6 @@ import lib.helper_functions as helper_functions
 
 def main(config):
     if config["enabled"]:
-        
         input_filename = config["input_filename"]
         output_filename = config["output_filename"]
         species = config["species"]

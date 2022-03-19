@@ -10,6 +10,7 @@ from lib import helper_functions
 import gather_data, plasma_temperature, prepare_spectrum
 
 def set_logging():
+    logging.captureWarnings(True) 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s | %(levelname)-8s | %(message)s')
@@ -52,4 +53,4 @@ if __name__ == "__main__":
     config = helper_functions.read_config_file("config.yaml")
     prepare_spectrum.main(config["prepare_spectrum"])
     gather_data.main(config["gather_data"])
-    # plasma_temperature.main(config["plasma_temperature"])
+    plasma_temperature.main(config["plasma_temperature"])
