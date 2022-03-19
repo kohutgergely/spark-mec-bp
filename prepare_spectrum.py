@@ -1,6 +1,8 @@
 import yaml
 import numpy as np
 import lib.helper_functions as helper_functions
+import logging
+import warnings
 
 from scipy.signal import find_peaks, peak_prominences
 from scipy import sparse
@@ -36,9 +38,12 @@ def baseline_arPLS(y, ratio, lam, niter, full_output=False):
 
         m = np.mean(dn)
         s = np.std(dn)
-
-        w_new = 1 / (1 + np.exp(2 * (d - (2 * s - m)) / s))
-
+        with warnings.catch_warnings():
+            warnings.filterwarnings("error")
+            try:
+                w_new = 1 / (1 + np.exp(2 * (d - (2 * s - m)) / s))
+            except RuntimeWarning as error:
+                logging.info(str(error))
         crit = norm(w_new - w) / norm(w)
 
         w = w_new
@@ -47,7 +52,7 @@ def baseline_arPLS(y, ratio, lam, niter, full_output=False):
         count += 1
 
         if count > niter:
-            print('Maximum number of iterations exceeded')
+            logging.info('Maximum number of iterations exceeded')
             break
 
     if full_output:
@@ -91,11 +96,15 @@ def integral(spectrum, height, wlen):
 
 
 def prepare_baseline_corrected_spectrum(
-        filename: str,
-        ratio: float,
-        lam: int,
-        niter: int
+    filename: str,
+    ratio: float,
+    lam: int,
+    niter: int
 ) -> np.array:
+    logging.info(f"""Correcting base line of the following spectrum: {filename} using the following parameters:
+    ratio: {ratio}
+    lam: {lam}
+    niter: {niter}""")
     spectrum = np.loadtxt(filename, dtype=None, delimiter='\t')
     return corr_spectrum(spectrum, ratio, lam, niter)
 
@@ -129,6 +138,9 @@ def plot_detected_peaks(spectrum, peak_indices, wl_start, wl_end):
 
 
 def calculate_integrals(baseline_corrected_spectrum, height, wlen, output_filename=None):
+    logging.info(f"""Calculating integrals using the baseline corrected spectrum and the following parameters:
+    height:{height}
+    wlen:{wlen}""")
     peak_integrals = integral(baseline_corrected_spectrum, height, wlen)
     if output_filename:
         np.savetxt(output_filename, peak_integrals, fmt='%.6e')
