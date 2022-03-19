@@ -176,13 +176,14 @@ def calculate_boltzmann_plots(species_name: str, traget_lines: list, integrals_w
 def main(config):
     if config["enabled"]:
         target_lines = {
-            "CuI": np.array([465.11, 510.55, 515.32, 521.82]),
-            "CuII": np.array([495.36, 512.18, 518.34])
+            "CuI": [465.11, 510.55, 515.32, 521.82],
+            "CuII": [495.36, 512.18, 518.34]
         }
         integrals_with_constants = pd.read_csv((config["input_filename"]), sep="\s+",
                                                names=["exp_wl(nm)", "obs_wl_air(nm)", "Aki(s^-1)", "g_k", "Ek(cm-1)",
                                                       "intensity"])
         calculate_boltzmann_plots("CuI", target_lines["CuI"], integrals_with_constants)
+        calculate_boltzmann_plots("CuII", target_lines["CuII"], integrals_with_constants)
 
 
 
@@ -202,24 +203,25 @@ def main(config):
         # plt.title('Classical Boltzmann plot of Cu I lines')
         # plt.figure()
 
+        # ###Cu II Boltzmann plot###
+        # CuII_species = np.array([495.36, 512.18, 518.34])
+        # BPlot_CuII = BPlot(CuII_species, integrals_with_constants)
+        # BPlot_CuII_results = T_fit(BPlot_CuII)
+        # BPlot_CuII_fit = np.polyfit(BPlot_CuII[:,0], BPlot_CuII[:,1], 1)
+        # print('Temperature from Boltzmann plot of Cu II lines:', BPlot_CuII_results[0], 'K', 'with an R2:', BPlot_CuII_results[2])
+        
+        # plt.plot(BPlot_CuII[:,0], BPlot_CuII[:,1], "o")
+        # plt.plot(BPlot_CuII[:,0], BPlot_CuII[:,0]*BPlot_CuII_fit[0]+BPlot_CuII_fit[1])
+        # plt.xlabel('Upper energy level (cm-1)')
+        # plt.ylabel('log of line intensity (a.u.)')
+        # plt.title('Classical Boltzmann plot of Cu II lines')
+        # plt.figure()
 
 if __name__ == "__main__":
     config = helper_functions.read_config_file("config.yaml")
     main(config["plasma_temperature"])
 
-# ###Cu II Boltzmann plot###
-# CuII_species = np.array([495.36, 512.18, 518.34])
-# BPlot_CuII = BPlot(CuII_species, integrals_with_constants)
-# BPlot_CuII_results = T_fit(BPlot_CuII)
-# BPlot_CuII_fit = np.polyfit(BPlot_CuII[:,0], BPlot_CuII[:,1], 1)
-# print('Temperature from Boltzmann plot of Cu II lines:', BPlot_CuII_results[0], 'K', 'with an R2:', BPlot_CuII_results[2])
-#
-# plt.plot(BPlot_CuII[:,0], BPlot_CuII[:,1], "o")
-# plt.plot(BPlot_CuII[:,0], BPlot_CuII[:,0]*BPlot_CuII_fit[0]+BPlot_CuII_fit[1])
-# plt.xlabel('Upper energy level (cm-1)')
-# plt.ylabel('log of line intensity (a.u.)')
-# plt.title('Classical Boltzmann plot of Cu II lines')
-# plt.figure()
+
 #
 # ###Saha-Boltzmann line-pair plot Cu I/Cu II###
 # ne_init = 1E18 #initial value for electron concentration calculation

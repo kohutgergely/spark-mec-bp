@@ -10,8 +10,12 @@ build:
 
 .PHONY: shell
 shell:
-	${RUN_IN_DOCKER} --entrypoint '' -it ${DOCKER_IMAGE_NAME} /bin/bash
+	${RUN_IN_DOCKER} -p 8888:8888 --entrypoint '' -it ${DOCKER_IMAGE_NAME} /bin/bash
 
 .PHONY: run
 run: 
 	${RUN_IN_DOCKER} --entrypoint '' -it ${DOCKER_IMAGE_NAME} python app.py
+
+.PHONY: jupyter
+jupyter: 
+	${RUN_IN_DOCKER} -p 8888:8888 ${DOCKER_IMAGE_NAME} jupyter notebook --port 8888 --allow-root --no-browser --ip=0.0.0.0

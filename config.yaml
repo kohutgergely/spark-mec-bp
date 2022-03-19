@@ -25,3 +25,5 @@ plasma_temperature:
   enabled: true
   input_filename: "AuAgCu_15-15-70_2eV_1E19_10000res_integrals_with_constants.txt"
   output_filename: "result.txt"
+  ne_init: 1E18
+  T_init: 20000
