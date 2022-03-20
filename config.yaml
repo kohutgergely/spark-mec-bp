@@ -23,7 +23,17 @@ gather_data:
 
 plasma_temperature:
   enabled: true
+  species_name: "Cu"
   input_filename: "AuAgCu_15-15-70_2eV_1E19_10000res_integrals_with_constants.txt"
   output_filename: "result.txt"
-  ne_init: 1E18
-  T_init: 20000
+  ionization_energy: "Cu I"
+  target_lines:
+    CuI: 
+      - 465.11 
+      - 510.55
+      - 515.32
+      - 521.82
+    CuII: 
+      - 495.36
+      - 512.18
+      - 518.34

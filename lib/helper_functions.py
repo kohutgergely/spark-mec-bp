@@ -4,7 +4,9 @@ from urllib import request
 from adapters.nist_spectrum_level_adapter import SpectrumLevelData
 from adapters.nist_ionization_energy_adapter import IonizationEnergyData
 from adapters.nist_spectrum_line_adapter import SpectrumLineAdapter
+from adapters.nist_ionization_energy_adapter import IonizationEnergyAdapter
 from configs.nist_spectrum_line_adapter_config import SpectrumLineAdapterConfig
+from configs.nist_ionization_energy_adapter_config import IonizationEnergyAdapterConfig
 from io import StringIO
 
 import yaml
@@ -19,9 +21,13 @@ def get_partition_function(spectrum_level_data: SpectrumLevelData) -> float:
     return partition_function_value
 
 
-def get_ionization_energy(spectrum, ionization_energy_data: IonizationEnergyData):
-    ionization_energy_df = pd.read_csv(StringIO(ionization_energy_data.data), sep="\t")
-    return float(ionization_energy_df[ionization_energy_df['Sp. Name'] == spectrum]['Ionization Energy (eV)'])
+def get_ionization_energy(spectrum):
+    ionization_config = IonizationEnergyAdapterConfig()
+    ionization_energy_adapter = IonizationEnergyAdapter(ionization_config)
+    requested_ionization = ionization_energy_adapter.request_data(spectrum=spectrum)
+    ionization_energy_df = pd.read_csv(StringIO(requested_ionization.data), sep="\t")
+    print(ionization_energy_df)
+    return float(ionization_energy_df[ionization_energy_df['Sp. Name'] == spectrum]['Ionization Energy (1/cm)'])
 
 
 def read_config_file(config_file: str) -> dict:
