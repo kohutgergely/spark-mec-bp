@@ -1,9 +1,9 @@
-FROM python
+FROM python:3.9
 
-COPY . /app
+COPY requirements.txt requirements.txt
+
+RUN pip install -r requirements.txt
 
 WORKDIR /app
 
-RUN pip3 install -r requirements.txt
-
-CMD python app.py
+ENTRYPOINT ["python", "app.py"]

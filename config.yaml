@@ -1,3 +1,11 @@
+gather_data:
+  enabled: true
+  input_filename: "AuAgCu_15-15-70_2eV_1E19_10000res_integrals.txt"
+  output_filename: "AuAgCu_15-15-70_2eV_1E19_10000res_integrals_with_constants.txt"
+  species: "Au;Ag;Cu"
+  lower_wavelength: 300
+  upper_wavelength: 900
+
 prepare_spectrum:
   enabled: true
   input_filename: "AuAgCu_15-15-70_2eV_1E19_10000res.txt"
@@ -12,14 +20,6 @@ prepare_spectrum:
   plot_options:
     wl_start: 509
     wl_end: 523
-
-gather_data:
-  enabled: true
-  input_filename: "AuAgCu_15-15-70_2eV_1E19_10000res_integrals.txt"
-  output_filename: "AuAgCu_15-15-70_2eV_1E19_10000res_integrals_with_constants.txt"
-  species: "Au;Ag;Cu"
-  lower_wavelength: 300
-  upper_wavelength: 900
 
 plasma_temperature:
   enabled: true

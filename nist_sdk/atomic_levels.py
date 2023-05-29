@@ -1,8 +1,17 @@
-from configs.nist_spectrum_level_adapter_config import SpectrumLevelAdapterConfig
-import validators.nist_validators
+import validator.nist_validators
 import logging
 import requests
 
+class SpectrumLevelAdapterConfig:
+    url = "https://physics.nist.gov/cgi-bin/ASD/energy1.pl"
+    de = 0
+    units = 0
+    output_format = 3
+    display_output = 0
+    page_size = 15
+    multiplet_ordered = 0
+    level_information_principal_configuration = "on"
+    submit = "Retrieve Data"
 
 class SpectrumLevelData:
 
@@ -42,7 +51,7 @@ class SpectrumLevelAdapter:
         ) as response:
             try:
                 response.raise_for_status()
-                validator = validators.nist_validators.NistBaseResponseValidator(response.text)
+                validator = validator.nist_validators.NistBaseResponseValidator(response.text)
                 response_validation = validator.validate()
                 if response_validation["result"] is False:
                     raise SyntaxError(response_validation["error"])

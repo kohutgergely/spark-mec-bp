@@ -1,4 +1,4 @@
-DOCKER_IMAGE_NAME=`basename ${PWD}`
+DOCKER_IMAGE_NAME=plasma-characterizer
 
 RUN_IN_DOCKER= \
         docker run --rm \
@@ -9,11 +9,11 @@ build:
 	docker build --tag ${DOCKER_IMAGE_NAME} .
 
 .PHONY: shell
-shell:
+shell: build
 	${RUN_IN_DOCKER} -p 8888:8888 --entrypoint '' -it ${DOCKER_IMAGE_NAME} /bin/bash
 
 .PHONY: run
-run: 
+run: build
 	${RUN_IN_DOCKER} --entrypoint '' -it ${DOCKER_IMAGE_NAME} python app.py
 
 .PHONY: jupyter

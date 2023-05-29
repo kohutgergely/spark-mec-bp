@@ -1,8 +1,15 @@
-from configs.nist_ionization_energy_adapter_config import IonizationEnergyAdapterConfig
-import validators.nist_validators
+import validator.nist_validators
 import logging
 import requests
 
+class IonizationEnergyAdapterConfig:
+    url = "https://physics.nist.gov/cgi-bin/ASD/ie.pl"
+    units = 0
+    output_format = 3
+    order = 0
+    spectrum_name_output = "on"
+    ionization_energy_output = 0
+    submit = "Retrieve Data"
 
 class IonizationEnergyData:
 
@@ -39,7 +46,7 @@ class IonizationEnergyAdapter:
         ) as response:
             try:
                 response.raise_for_status()
-                validator = validators.nist_validators.NistBaseResponseValidator(response.text)
+                validator = validator.nist_validators.NistBaseResponseValidator(response.text)
                 response_validation = validator.validate()
                 if response_validation["result"] is False:
                     raise SyntaxError(response_validation["error"])

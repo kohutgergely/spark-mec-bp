@@ -29,13 +29,15 @@ def test_ionization_energy_adapter_get_request_is_called_with_valid_parameters(
     mocked_get = mocker.patch("requests.get")
 
     ionization_energy_adapter = IonizationEnergyAdapter(valid_ionization_energy_config)
-    ionization_energy_adapter.request_data(
+    actual_result = ionization_energy_adapter.request_data(
         valid_ionization_energy_request_params["spectra"],
     )
     mocked_get.assert_called_once_with(
         url=valid_ionization_energy_config.url,
         params=valid_ionization_energy_request_params
     )
+
+    assert actual_result == mocked_get.return_value
 
 def test_ionization_energy_adapter_response_raise_for_status_is_called(
         mocker,
