@@ -23,26 +23,24 @@ class AtomicLinesFetcher:
     level_information_g = "on"
     submit = "Retrieve Data"
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.validator = NISTResponseValidator()
 
     def fetch(
             self,
-            species: str,
+            spectrum: str,
             lower_wavelength: int,
             upper_wavelength: int
-    ):
+    ) -> str:
         logging.info(
-            f"Retrieving atomic line information from NIST database for the following species: {species}")
-        response = self._request_data_from_nist(species, lower_wavelength, upper_wavelength)
-        self._validate_response(response)
-        return(response.text)
+            f"Retrieving atomic line information from NIST database for the following spectrum: {spectrum}")
+        return self._request_data_from_nist(spectrum, lower_wavelength, upper_wavelength)
 
-    def _request_data_from_nist(self, species: str, lower_wavelength: int, upper_wavelength: int):
-        return requests.get(
+    def _request_data_from_nist(self, spectrum: str, lower_wavelength: int, upper_wavelength: int) -> str:
+        with requests.get(
                 url=self.url,
                 params={
-                    "spectra": species,
+                    "spectra": spectrum,
                     "low_w": lower_wavelength,
                     "upp_w": upper_wavelength,
                     "limits_type": self.measure_type,
@@ -63,9 +61,11 @@ class AtomicLinesFetcher:
                     "g_out": self.level_information_g,
                     "submit": self.submit,
                 }
-            )
+            ) as response:
+            self._validate_response(response)
+            return response.text
        
-    def _validate_response(self, response: requests.Response):
+    def _validate_response(self, response: requests.Response) -> None:
         response.raise_for_status()
         validation_error = self.validator.validate(response.text)
         if validation_error:

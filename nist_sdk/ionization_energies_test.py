@@ -1,123 +1,81 @@
 import pytest
-from configs.nist_ionization_energy_adapter_config import IonizationEnergyAdapterConfig
-from adapters.nist_ionization_energy_adapter import IonizationEnergyAdapter
-
+from nist_sdk.ionization_energies import IonizationEnergyFetcher
 
 @pytest.fixture()
-def valid_ionization_energy_config():
-    config = IonizationEnergyAdapterConfig()
-    return config
-
-@pytest.fixture()
-def valid_ionization_energy_request_params(valid_ionization_energy_config):
+def valid_ionization_energy_request_params():
     return  {
-                "spectra": "dummy spectrum",
-                "units": valid_ionization_energy_config.units,
-                "format": valid_ionization_energy_config.output_format,
-                "order": valid_ionization_energy_config.order,
-                "sp_name_out": valid_ionization_energy_config.spectrum_name_output,
-                "e_out": valid_ionization_energy_config.ionization_energy_output,
-                "submit": valid_ionization_energy_config.submit
+            "units": 0,
+            "format": 3,
+            "order": 0,
+            "at_num_out": "on",
+            "sp_name_out": "on",
+            "ion_charge_out": "on",
+            "el_name_out": "on",
+            "seq_out": "on",
+            "shells_out": "on",
+            "conf_out": "on",
+            "level_out": "on",
+            "ion_conf_out": "on",
+            "unc_out": "on",
+            "sp_name_out": "on",
+            "e_out": 0,
+            "submit": "Retrieve Data",
             }
 
-def test_ionization_energy_adapter_get_request_is_called_with_valid_parameters(
+@pytest.fixture()
+def url():
+    return "https://physics.nist.gov/cgi-bin/ASD/ie.pl"
+
+
+def test_ionization_energies_fetcher_get_request_is_called_with_valid_parameters(
         mocker,
-        valid_ionization_energy_config,
-        valid_ionization_energy_request_params
-        ):
-
-    mocked_get = mocker.patch("requests.get")
-
-    ionization_energy_adapter = IonizationEnergyAdapter(valid_ionization_energy_config)
-    actual_result = ionization_energy_adapter.request_data(
-        valid_ionization_energy_request_params["spectra"],
-    )
-    mocked_get.assert_called_once_with(
-        url=valid_ionization_energy_config.url,
-        params=valid_ionization_energy_request_params
-    )
-
-    assert actual_result == mocked_get.return_value
-
-def test_ionization_energy_adapter_response_raise_for_status_is_called(
-        mocker,
-        valid_ionization_energy_config,
+        url,
         valid_ionization_energy_request_params
 ):
-    mocked_get = mocker.patch("requests.get")
-    with mocked_get() as response:
+    species ="dummy_species"
+
+    mock_get = mocker.patch("nist_sdk.ionization_energies.requests.get")
+
+    expected_params = {
+        "spectra": species,
+        **valid_ionization_energy_request_params,
+    }
+
+    with mock_get() as response:
+        acutal_response = IonizationEnergyFetcher().fetch(
+            species,
+        )
+
+    mock_get.assert_called_with(
+        url=url, params=expected_params
+    )
+
+    assert acutal_response == response.text
+
+
+def test_ionization_energies_fetcher_response_raise_for_status_is_called(
+        mocker,
+):
+    mock_get = mocker.patch("nist_sdk.ionization_energies.requests.get")
+    with mock_get() as response:
         response.raise_for_status.side_effect = Exception()
 
     with pytest.raises(Exception):
-        ionization_energy_adapter = IonizationEnergyAdapter(valid_ionization_energy_config)
-        ionization_energy_adapter.request_data(
-            valid_ionization_energy_request_params["spectra"]
+        IonizationEnergyFetcher().fetch(
+            "dummy_species",
         )
 
-def test_ionization_energy_adapter_logs_error_when_raise_for_status_raises_exception(
-        mocker,
-        valid_ionization_energy_config,
-        valid_ionization_energy_request_params
+def test_ionization_energies_fetcher_calls_response_validator_which_returns_false_and_raises_exception(
+        mocker
 ):
-    mocked_get = mocker.patch("requests.get")
-    mocked_logger = mocker.patch("logging.error")
+    mock_get = mocker.patch("nist_sdk.ionization_energies.requests.get")
+    mock_validator = mocker.patch("nist_sdk.ionization_energies.NISTResponseValidator")
+    mock_validator.return_value.validate.return_value = ValueError("dummy_error")
 
-    with mocked_get() as response:
-        response.status_code = 400
-        http_error_msg="dummy error"
-        response.raise_for_status.side_effect = Exception(http_error_msg)
-
-        with pytest.raises(Exception) as error:
-            ionization_energy_adapter = IonizationEnergyAdapter(valid_ionization_energy_config)
-            ionization_energy_adapter.request_data(
-                valid_ionization_energy_request_params["spectra"]
+    with mock_get() as response:
+        with pytest.raises(ValueError) as error:
+            IonizationEnergyFetcher().fetch(
+                "dummy_species",
             )
-    mocked_logger.assert_called_with(str(error.value))
 
-def test_ionization_energy_adapter_raises_error_when_input_paramters_are_wrong(
-        mocker,
-        valid_ionization_energy_config,
-        valid_ionization_energy_request_params
-):
-    mocked_get = mocker.patch("requests.get")
-    mocked_logger = mocker.patch("logging.error")
-
-    with mocked_get() as response:
-        response.status_code = 400
-        http_error_msg="dummy error"
-        response.raise_for_status.side_effect = Exception(http_error_msg)
-
-        with pytest.raises(Exception) as error:
-            ionization_energy_adapter = IonizationEnergyAdapter(valid_ionization_energy_config)
-            ionization_energy_adapter.request_data(
-                valid_ionization_energy_request_params["spectra"]
-            )
-    mocked_logger.assert_called_with(str(error.value))
-
-def test_ionization_energy_adapter_calls_response_validator_which_returns_false_and_raises_exception(
-        mocker,
-        valid_ionization_energy_config,
-        valid_ionization_energy_request_params
-):
-    dummy_validation_result = {
-        "result": False,
-        "error": "dummy_error"
-    }
-    mocked_get = mocker.patch("requests.get")
-    mocker.patch("logging.error")
-    mocked_validator = mocker.patch("validators.nist_validators.NistBaseResponseValidator")
-    mocked_validator_instance = mocker.MagicMock()
-    mocked_validator.return_value = mocked_validator_instance
-    mocked_validator_instance.validate.return_value = dummy_validation_result
-
-
-    with mocked_get() as response:
-
-        with pytest.raises(SyntaxError) as error:
-            ionization_energy_adapter = IonizationEnergyAdapter(valid_ionization_energy_config)
-            ionization_energy_adapter.request_data(
-                valid_ionization_energy_request_params["spectra"]
-        )
-        assert str(error.value) == dummy_validation_result["error"]
-        mocked_validator.assert_called_with(response.text)
-        mocked_validator_instance.validate.assert_called_once()
+    mock_validator.return_value.validate.assert_called_with(response.text)

@@ -37,13 +37,7 @@ def test_atomic_lines_fetcher_get_request_is_called_with_valid_parameters(
     species ="dummy_species"
     lower_wavelength = 200
     upper_wavelength = 400
-    mocked_get = mocker.patch("requests.get")
-
-    response = AtomicLinesFetcher().fetch(
-        species,
-        lower_wavelength,
-        upper_wavelength,
-    )
+    mock_get = mocker.patch("nist_sdk.atomic_lines.requests.get")
 
     expected_params = {
         "spectra": species,
@@ -52,19 +46,26 @@ def test_atomic_lines_fetcher_get_request_is_called_with_valid_parameters(
         **valid_atomic_lines_fetcher_request_params,
     }
 
-    mocked_get.assert_called_once_with(
-        url=url,
-        params=expected_params
+    with mock_get() as response:
+        acutal_response = AtomicLinesFetcher().fetch(
+            species,
+            lower_wavelength,
+            upper_wavelength,
+        )
+
+    mock_get.assert_called_with(
+        url=url, params=expected_params
     )
 
-    assert response == mocked_get.return_value.text
+    assert acutal_response == response.text
 
 
 def test_atomic_lines_fetcher_response_raise_for_status_is_called(
         mocker,
 ):
-    mocked_get = mocker.patch("requests.get")
-    mocked_get.return_value.raise_for_status.side_effect = Exception()
+    mock_get = mocker.patch("nist_sdk.atomic_lines.requests.get")
+    with mock_get() as response:
+        response.raise_for_status.side_effect = Exception()
 
     with pytest.raises(Exception):
         AtomicLinesFetcher().fetch(
@@ -76,16 +77,16 @@ def test_atomic_lines_fetcher_response_raise_for_status_is_called(
 def test_atomic_lines_fetcher_calls_response_validator_which_returns_false_and_raises_exception(
         mocker
 ):
-    mocked_get = mocker.patch("requests.get")
-    mock_error = ValueError("dummy_error")
-    mocked_validator = mocker.patch("nist_sdk.atomic_lines.NISTResponseValidator")
-    mocked_validator.return_value.validate.return_value = mock_error
-   
-    with pytest.raises(ValueError) as error:
-        AtomicLinesFetcher().fetch(
-            "dummy_species",
-            0,
-            0
-        )
+    mock_get = mocker.patch("nist_sdk.atomic_lines.requests.get")
+    mock_validator = mocker.patch("nist_sdk.atomic_lines.NISTResponseValidator")
+    mock_validator.return_value.validate.return_value = ValueError("dummy_error")
 
-    mocked_validator.return_value.validate.assert_called_with(mocked_get.return_value.text)
+    with mock_get() as response:
+        with pytest.raises(ValueError) as error:
+            AtomicLinesFetcher().fetch(
+                "dummy_species",
+                0,
+                0
+            )
+
+    mock_validator.return_value.validate.assert_called_with(response.text)

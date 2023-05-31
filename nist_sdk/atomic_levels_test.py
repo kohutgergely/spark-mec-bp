@@ -1,129 +1,87 @@
 import pytest
-from configs.nist_spectrum_level_adapter_config import SpectrumLevelAdapterConfig
-from adapters.nist_spectrum_level_adapter import SpectrumLevelAdapter
+from nist_sdk.atomic_levels import AtomicLevelsFetcher
 
 
 @pytest.fixture()
-def valid_level_adapter_config():
-    config = SpectrumLevelAdapterConfig()
-    return config
+def valid_atomic_levels_request_params():
+    return {
+        "units": 0,
+        "de": 0,
+        "format": 3,
+        "output": 0,
+        "page_size": 15,
+        "multiplet_ordered": 0,
+        "conf_out": "on",
+        "submit": "Retrieve Data",
+        "term_out": "on",
+        "level_out": "on",
+        "unc_out": 1,
+        "j_out": "on",
+        "g_out": "on",
+        "lande_out": "on",
+        "perc_out": "on",
+    }
+
 
 @pytest.fixture()
-def valid_level_adapter_request_params(valid_level_adapter_config):
-    return  {
-                "spectrum": "dummy spectrum",
-                "temp": 2,
-                "units": valid_level_adapter_config.units,
-                "de": valid_level_adapter_config.de,
-                "format": valid_level_adapter_config.output_format,
-                "output": valid_level_adapter_config.display_output,
-                "page_size": valid_level_adapter_config.page_size,
-                "multiplet_ordered": valid_level_adapter_config.multiplet_ordered,
-                "conf_out": valid_level_adapter_config.level_information_principal_configuration,
-                "submit": valid_level_adapter_config.submit
-            }
+def url():
+    return "https://physics.nist.gov/cgi-bin/ASD/energy1.pl"
 
-def test_level_adapter_get_request_is_called_with_valid_parameters(
-        mocker,
-        valid_level_adapter_config,
-        valid_level_adapter_request_params
-        ):
 
-    mocked_get = mocker.patch("requests.get")
-
-    level_adapter = SpectrumLevelAdapter(valid_level_adapter_config)
-    level_adapter.request_data(
-        valid_level_adapter_request_params["spectrum"],
-        valid_level_adapter_request_params["temp"]
-    )
-    mocked_get.assert_called_once_with(
-        url=valid_level_adapter_config.url,
-        params=valid_level_adapter_request_params
-    )
-
-def test_level_adapter_response_raise_for_status_is_called(
-        mocker,
-        valid_level_adapter_config,
-        valid_level_adapter_request_params
+def test_fetch_get_request_is_called_with_valid_parameters(
+    mocker,
+    url,
+    valid_atomic_levels_request_params,
 ):
-    mocked_get = mocker.patch("requests.get")
-    with mocked_get() as response:
+    mock_get = mocker.patch("nist_sdk.atomic_levels.requests.get")
+
+    species = "dummy_species"
+    temperature = 250.0
+
+    expected_params = {
+        "spectrum": species,
+        "temp": temperature,
+        **valid_atomic_levels_request_params,
+    }
+
+    with mock_get() as response:
+        acutal_response = AtomicLevelsFetcher().fetch(
+            species,
+            temperature,
+        )
+
+    mock_get.assert_called_with(
+        url=url,
+        params=expected_params,
+    )
+    assert acutal_response == response.text
+
+
+def test_fetch_response_raise_for_status_is_called(
+        mocker,
+):
+    mock_get = mocker.patch("nist_sdk.atomic_levels.requests.get")
+    with mock_get() as response:
         response.raise_for_status.side_effect = Exception()
 
     with pytest.raises(Exception):
-        level_adapter = SpectrumLevelAdapter(valid_level_adapter_config)
-        level_adapter.request_data(
-            valid_level_adapter_request_params["spectrum"],
-            valid_level_adapter_request_params["temp"]
+        AtomicLevelsFetcher().fetch(
+            "dummy_species",
+            300,
         )
 
-def test_level_adapter_logs_error_when_raise_for_status_raises_exception(
-        mocker,
-        valid_level_adapter_config,
-        valid_level_adapter_request_params
+def test_fetch_calls_response_validator_which_returns_false_and_raises_exception(
+        mocker
 ):
-    mocked_get = mocker.patch("requests.get")
-    mocked_logger = mocker.patch("logging.error")
+    mock_get = mocker.patch("nist_sdk.atomic_levels.requests.get")
+    mock_validator = mocker.patch("nist_sdk.atomic_levels.NISTResponseValidator")
+    mock_validator.return_value.validate.return_value = ValueError("dummy_error")
 
-    with mocked_get() as response:
-        response.status_code = 400
-        http_error_msg="dummy error"
-        response.raise_for_status.side_effect = Exception(http_error_msg)
-
-        with pytest.raises(Exception) as error:
-            level_adapter = SpectrumLevelAdapter(valid_level_adapter_config)
-            level_adapter.request_data(
-                valid_level_adapter_request_params["spectrum"],
-                valid_level_adapter_request_params["temp"]
+    with mock_get() as response:
+        with pytest.raises(ValueError) as error:
+            AtomicLevelsFetcher().fetch(
+                "dummy_species",
+                300,
             )
-    mocked_logger.assert_called_with(str(error.value))
 
-def test_level_adapter_raises_error_when_input_paramters_are_wrong(
-        mocker,
-        valid_level_adapter_config,
-        valid_level_adapter_request_params
-):
-    mocked_get = mocker.patch("requests.get")
-    mocked_logger = mocker.patch("logging.error")
-
-    with mocked_get() as response:
-        response.status_code = 400
-        http_error_msg="dummy error"
-        response.raise_for_status.side_effect = Exception(http_error_msg)
-
-        with pytest.raises(Exception) as error:
-            level_adapter = SpectrumLevelAdapter(valid_level_adapter_config)
-            level_adapter.request_data(
-                valid_level_adapter_request_params["spectrum"],
-                valid_level_adapter_request_params["temp"]
-            )
-    mocked_logger.assert_called_with(str(error.value))
-
-def test_level_adapter_calls_response_validator_which_returns_false_and_raises_exception(
-        mocker,
-        valid_level_adapter_config,
-        valid_level_adapter_request_params
-):
-    dummy_validation_result = {
-        "result": False,
-        "error": "dummy_error"
-    }
-    mocked_get = mocker.patch("requests.get")
-    mocker.patch("logging.error")
-    mocked_validator = mocker.patch("validators.nist_validators.NistBaseResponseValidator")
-    mocked_validator_instance = mocker.MagicMock()
-    mocked_validator.return_value = mocked_validator_instance
-    mocked_validator_instance.validate.return_value = dummy_validation_result
-
-
-    with mocked_get() as response:
-
-        with pytest.raises(SyntaxError) as error:
-            level_adapter = SpectrumLevelAdapter(valid_level_adapter_config)
-            level_adapter.request_data(
-                valid_level_adapter_request_params["spectrum"],
-                valid_level_adapter_request_params["temp"]
-        )
-        assert str(error.value) == dummy_validation_result["error"]
-        mocked_validator.assert_called_with(response.text)
-        mocked_validator_instance.validate.assert_called_once()
+    mock_validator.return_value.validate.assert_called_with(response.text)

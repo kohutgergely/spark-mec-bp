@@ -1,58 +1,62 @@
-import validator.nist_validators
+from nist_sdk.validator.nist import NISTResponseValidator
 import logging
 import requests
-
-class IonizationEnergyAdapterConfig:
+  
+class IonizationEnergyFetcher:
     url = "https://physics.nist.gov/cgi-bin/ASD/ie.pl"
     units = 0
     output_format = 3
     order = 0
+    atomic_number = "on"
+    spectrum_name = "on"
+    ion_charge = "on"
+    element_name = "on"
+    isoelectronic_sequence = "on"
+    ground_state_electronic_shells = "on"
+    ground_state_configuration = "on"
+    ground_state_level = "on"
+    ionized_configuration = "on"
+    uncertainity = "on"
     spectrum_name_output = "on"
     ionization_energy_output = 0
     submit = "Retrieve Data"
 
-class IonizationEnergyData:
+    def __init__(self) -> None:
+        self.validator = NISTResponseValidator()
 
-    def __init__(self, data: str) -> None:
-        self.data = data
-
-    def __str__(self) -> str:
-        return self.data
-
-
-class IonizationEnergyAdapter:
-
-    def __init__(self, config: IonizationEnergyAdapterConfig) -> None:
-        self.config = config
-
-    def request_data(
+    def fetch(
             self,
             spectrum: str,
-    ):
+    ) -> str:
         logging.info(
             f"Retrieving ionization energy from NIST database for the following query: {spectrum}")
         with requests.get(
-                url=self.config.url,
+                url=self.url,
                 params={
-
                     "spectra": spectrum,
-                    "units": self.config.units,
-                    "format": self.config.output_format,
-                    "order": self.config.order,
-                    "sp_name_out": self.config.spectrum_name_output,
-                    "e_out": self.config.ionization_energy_output,
-                    "submit": self.config.submit
+                    "units": self.units,
+                    "format": self.output_format,
+                    "order": self.order,
+                    "at_num_out": self.atomic_number,
+                    "sp_name_out": self.spectrum_name,
+                    "ion_charge_out": self.ion_charge,
+                    "el_name_out": self.element_name,
+                    "seq_out": self.isoelectronic_sequence,
+                    "shells_out": self.ground_state_electronic_shells,
+                    "conf_out": self.ground_state_configuration,
+                    "level_out": self.ground_state_level,
+                    "ion_conf_out": self.ionized_configuration,
+                    "unc_out": self.uncertainity,
+                    "sp_name_out": self.spectrum_name_output,
+                    "e_out": self.ionization_energy_output,
+                    "submit": self.submit
                 }
         ) as response:
-            try:
-                response.raise_for_status()
-                validator = validator.nist_validators.NistBaseResponseValidator(response.text)
-                response_validation = validator.validate()
-                if response_validation["result"] is False:
-                    raise SyntaxError(response_validation["error"])
-
-            except Exception as error:
-                logging.error(str(error))
-                raise error
-
-            return IonizationEnergyData(response.text)
+            self._validate_response(response)
+            return response.text
+       
+    def _validate_response(self, response: requests.Response) -> None:
+        response.raise_for_status()
+        validation_error = self.validator.validate(response.text)
+        if validation_error:
+            raise validation_error

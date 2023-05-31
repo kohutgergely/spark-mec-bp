@@ -1,8 +1,8 @@
-import validator.nist_validators
+from nist_sdk.validator.nist import NISTResponseValidator
 import logging
 import requests
 
-class SpectrumLevelAdapterConfig:
+class AtomicLevelsFetcher:
     url = "https://physics.nist.gov/cgi-bin/ASD/energy1.pl"
     de = 0
     units = 0
@@ -10,54 +10,56 @@ class SpectrumLevelAdapterConfig:
     display_output = 0
     page_size = 15
     multiplet_ordered = 0
-    level_information_principal_configuration = "on"
+    principal_configuration = "on"
+    principal_term = "on"
+    level = "on"
+    uncertainty = 1
+    j = "on"
+    g = "on"
+    lande_g = "on"
+    leading_percentagies = "on"
     submit = "Retrieve Data"
 
-class SpectrumLevelData:
+    def __init__(self) -> None:
+        self.validator = NISTResponseValidator()
 
-    def __init__(self, data: str) -> None:
-        self.data = data
-
-    def __str__(self) -> str:
-        return self.data
-
-
-class SpectrumLevelAdapter:
-
-    def __init__(self, config: SpectrumLevelAdapterConfig) -> None:
-        self.config = config
-
-    def request_data(
+    def fetch(
             self,
             spectrum: str,
             temperature: float
-    ):
+    ) -> str:
         logging.info(
-            f"Retrieving spectrum level information from NIST database for the following query: {spectrum}")
+            f"Retrieving atomic level information from NIST database for the following spectrum: {spectrum}")
+        return self._request_data_from_nist(spectrum, temperature)
+
+    def _request_data_from_nist(self, spectrum: str, temperature: float) -> str:
         with requests.get(
-                url=self.config.url,
+                url=self.url,
                 params={
                     "spectrum": spectrum,
                     "temp": temperature,
-                    "units": self.config.units,
-                    "de": self.config.de,
-                    "format": self.config.output_format,
-                    "output": self.config.display_output,
-                    "page_size": self.config.page_size,
-                    "multiplet_ordered": self.config.multiplet_ordered,
-                    "conf_out": self.config.level_information_principal_configuration,
-                    "submit": self.config.submit
+                    "units": self.units,
+                    "de": self.de,
+                    "format": self.output_format,
+                    "output": self.display_output,
+                    "page_size": self.page_size,
+                    "multiplet_ordered": self.multiplet_ordered,
+                    "conf_out": self.principal_configuration,
+                    "term_out": self.principal_term,
+                    "level_out": self.level,
+                    "unc_out": self.uncertainty,
+                    "j_out": self.j,
+                    "g_out": self.g,
+                    "lande_out": self.lande_g,
+                    "perc_out": self.leading_percentagies,
+                    "submit": self.submit
                 }
         ) as response:
-            try:
-                response.raise_for_status()
-                validator = validator.nist_validators.NistBaseResponseValidator(response.text)
-                response_validation = validator.validate()
-                if response_validation["result"] is False:
-                    raise SyntaxError(response_validation["error"])
-
-            except Exception as error:
-                logging.error(str(error))
-                raise error
-
-            return SpectrumLevelData(response.text)
+            self._validate_response(response)
+            return response.text
+       
+    def _validate_response(self, response: requests.Response) -> None:
+        response.raise_for_status()
+        validation_error = self.validator.validate(response.text)
+        if validation_error:
+            raise validation_error
