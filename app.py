@@ -1,13 +1,7 @@
 import logging
 from datetime import datetime
-from configs.nist_spectrum_level_adapter_config import SpectrumLevelAdapterConfig
-from configs.nist_ionization_energy_adapter_config import IonizationEnergyAdapterConfig
-from configs.nist_spectrum_line_adapter_config import SpectrumLineAdapterConfig
-from adapters.nist_spectrum_level_adapter import SpectrumLevelAdapter
-from adapters.nist_spectrum_line_adapter import SpectrumLineAdapter
-from adapters.nist_ionization_energy_adapter import IonizationEnergyAdapter
-from lib import helper_functions
-import gather_data, plasma_temperature, prepare_spectrum
+from nist_sdk.atomic_levels import AtomicLevelsFetcher
+from parsers.atomic_levels import AtomicLevelsParser
 
 def set_logging():
     logging.captureWarnings(True) 
@@ -23,7 +17,13 @@ def set_logging():
 
 if __name__ == "__main__":
     set_logging()
-    config = helper_functions.read_config_file("config.yaml")
-    prepare_spectrum.main(config["prepare_spectrum"])
-    gather_data.main(config["gather_data"])
-    plasma_temperature.main(config["plasma_temperature"])
+    # config = helper_functions.read_config_file("config.yaml")
+    atomic_levels_data = AtomicLevelsFetcher().fetch(
+        spectrum="Ag I",
+        temperature=300,
+    )
+    data = AtomicLevelsParser().parse_atomic_levels(atomic_levels_data)
+    print(data)
+    # prepare_spectrum.main(config["prepare_spectrum"])
+    # gather_data.main(config["gather_data"])
+    # plasma_temperature.main(config["plasma_temperature"])
