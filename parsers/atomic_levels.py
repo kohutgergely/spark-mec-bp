@@ -15,7 +15,7 @@ class AtomicLevelsParser:
             StringIO(atomic_levels_data),
             sep="\t",
             index_col=False
-        ).iloc[:-1,:]
+        ).iloc[:-1,:].infer_objects()
 
     def _read_partition_function(self, atomic_levels_data: str) -> float:
         partition_function_row = atomic_levels_data.split("\n")[-2]
