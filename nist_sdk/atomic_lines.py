@@ -1,7 +1,12 @@
 from nist_sdk.validator.nist import NISTResponseValidator
+from dataclasses import dataclass
 import logging
 import requests
 
+
+@dataclass
+class AtomicLinesData:
+    data: str
 
 class AtomicLinesFetcher:
     url = "https://physics.nist.gov/cgi-bin/ASD/lines1.pl"
@@ -31,7 +36,7 @@ class AtomicLinesFetcher:
             spectrum: str,
             lower_wavelength: int,
             upper_wavelength: int
-    ) -> str:
+    ) -> AtomicLinesData:
         logging.info(
             f"Retrieving atomic line information from NIST database for the following spectrum: {spectrum}")
         return self._request_data_from_nist(spectrum, lower_wavelength, upper_wavelength)
@@ -63,7 +68,8 @@ class AtomicLinesFetcher:
                 }
             ) as response:
             self._validate_response(response)
-            return response.text
+
+            return AtomicLinesData(data=response.text)
        
     def _validate_response(self, response: requests.Response) -> None:
         response.raise_for_status()

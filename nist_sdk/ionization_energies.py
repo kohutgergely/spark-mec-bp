@@ -1,7 +1,13 @@
 from nist_sdk.validator.nist import NISTResponseValidator
+from dataclasses import dataclass
+
 import logging
 import requests
-  
+
+@dataclass
+class IonizationEnergyData:
+    data: str
+
 class IonizationEnergyFetcher:
     url = "https://physics.nist.gov/cgi-bin/ASD/ie.pl"
     units = 0
@@ -27,7 +33,7 @@ class IonizationEnergyFetcher:
     def fetch(
             self,
             spectrum: str,
-    ) -> str:
+    ) -> IonizationEnergyData:
         logging.info(
             f"Retrieving ionization energy from NIST database for the following query: {spectrum}")
         with requests.get(
@@ -53,7 +59,7 @@ class IonizationEnergyFetcher:
                 }
         ) as response:
             self._validate_response(response)
-            return response.text
+            return IonizationEnergyData(data=response.text)
        
     def _validate_response(self, response: requests.Response) -> None:
         response.raise_for_status()

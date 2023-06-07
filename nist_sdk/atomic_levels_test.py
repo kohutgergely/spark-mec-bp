@@ -54,7 +54,7 @@ def test_fetch_get_request_is_called_with_valid_parameters(
         url=url,
         params=expected_params,
     )
-    assert acutal_response == response.text
+    assert acutal_response.data == response.text
 
 
 def test_fetch_response_raise_for_status_is_called(
