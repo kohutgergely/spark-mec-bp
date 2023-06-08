@@ -3,9 +3,11 @@ from dataclasses import dataclass
 import logging
 import requests
 
+
 @dataclass
 class AtomicLevelsData:
     data: str
+
 
 class AtomicLevelsFetcher:
     url = "https://physics.nist.gov/cgi-bin/ASD/energy1.pl"
@@ -62,7 +64,7 @@ class AtomicLevelsFetcher:
         ) as response:
             self._validate_response(response)
             return AtomicLevelsData(data=response.text)
-       
+
     def _validate_response(self, response: requests.Response) -> None:
         response.raise_for_status()
         validation_error = self.validator.validate(response.text)

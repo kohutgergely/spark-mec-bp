@@ -70,12 +70,15 @@ def test_fetch_response_raise_for_status_is_called(
             300,
         )
 
+
 def test_fetch_calls_response_validator_which_returns_false_and_raises_exception(
         mocker
 ):
     mock_get = mocker.patch("nist_sdk.atomic_levels.requests.get")
-    mock_validator = mocker.patch("nist_sdk.atomic_levels.NISTResponseValidator")
-    mock_validator.return_value.validate.return_value = ValueError("dummy_error")
+    mock_validator = mocker.patch(
+        "nist_sdk.atomic_levels.NISTResponseValidator")
+    mock_validator.return_value.validate.return_value = ValueError(
+        "dummy_error")
 
     with mock_get() as response:
         with pytest.raises(ValueError) as error:

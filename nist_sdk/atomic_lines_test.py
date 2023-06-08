@@ -2,6 +2,7 @@ import pytest
 from nist_sdk.atomic_lines import AtomicLinesFetcher, AtomicLinesData
 from typing import Dict
 
+
 @pytest.fixture()
 def valid_atomic_lines_fetcher_request_params():
     return {
@@ -13,16 +14,29 @@ def valid_atomic_lines_fetcher_request_params():
         "en_unit": 0,
         "output": 0,
         "page_size": 15,
-        "line_out": 1,
+        "I_scale_type": 1,
+        "tsb_value": 0,
         "show_obs_wl": 1,
-        "order_out": 0,
+        "show_calc_wl": 1,
+        "show_diff_obs_calc": 1,
         "show_av": 2,
-        "A_out": 0,
+        "show_wn": 1,
+        "line_out": 0,
+        "order_out": 0,
         "allowed_out": 1,
+        "A_out": 0,
+        "f_out": "on",
+        "S_out": "on",
         "enrg_out": "on",
+        "conf_out": "on",
+        "term_out": "on",
         "g_out": "on",
-        "submit":"Retrieve Data",
+        "J_out": "on",
+        "loggf_out": "on",
+        "unc_out": 1,
+        "submit": "Retrieve Data",
     }
+
 
 @pytest.fixture()
 def url():
@@ -34,7 +48,7 @@ def test_atomic_lines_fetcher_get_request_is_called_with_valid_parameters(
         url,
         valid_atomic_lines_fetcher_request_params: Dict
 ):
-    species ="dummy_species"
+    species = "dummy_species"
     lower_wavelength = 200
     upper_wavelength = 400
     mock_get = mocker.patch("nist_sdk.atomic_lines.requests.get")
@@ -74,12 +88,15 @@ def test_atomic_lines_fetcher_response_raise_for_status_is_called(
             0
         )
 
+
 def test_atomic_lines_fetcher_calls_response_validator_which_returns_false_and_raises_exception(
         mocker
 ):
     mock_get = mocker.patch("nist_sdk.atomic_lines.requests.get")
-    mock_validator = mocker.patch("nist_sdk.atomic_lines.NISTResponseValidator")
-    mock_validator.return_value.validate.return_value = ValueError("dummy_error")
+    mock_validator = mocker.patch(
+        "nist_sdk.atomic_lines.NISTResponseValidator")
+    mock_validator.return_value.validate.return_value = ValueError(
+        "dummy_error")
 
     with mock_get() as response:
         with pytest.raises(ValueError) as error:

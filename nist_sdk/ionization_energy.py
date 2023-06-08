@@ -4,9 +4,11 @@ from dataclasses import dataclass
 import logging
 import requests
 
+
 @dataclass
 class IonizationEnergyData:
     data: str
+
 
 class IonizationEnergyFetcher:
     url = "https://physics.nist.gov/cgi-bin/ASD/ie.pl"
@@ -60,7 +62,7 @@ class IonizationEnergyFetcher:
         ) as response:
             self._validate_response(response)
             return IonizationEnergyData(data=response.text)
-       
+
     def _validate_response(self, response: requests.Response) -> None:
         response.raise_for_status()
         validation_error = self.validator.validate(response.text)
