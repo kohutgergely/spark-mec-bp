@@ -1,172 +1,19 @@
 import numpy as np
-from numpy import genfromtxt
 from scipy.signal import find_peaks, peak_prominences
-from scipy import sparse
-from scipy.sparse import linalg
-from numpy.linalg import norm
+import scipy
+
 from matplotlib import pyplot as plt
-import codecs
-from scipy.optimize import curve_fit
-from lmfit.models import VoigtModel, PseudoVoigtModel
-from nist_sdk.atomic_lines import AtomicLinesFetcher
-from nist_sdk.atomic_levels import AtomicLevelsFetcher
-from parsers.atomic_lines import AtomicLinesParser
-from parsers.atomic_levels import AtomicLevelsParser
 
-### Constants###
-m = 9.10938291E-28  # g
-k = 1.3807E-16  # cm2 g s-2 K-1
-h = 6.6261E-27  # cm2 g s-1
-e = -1  # elementary charge
-c = 2.99792458E10  # cm/s
-p = 1E6  # g/s^2 m
+from lmfit.models import PseudoVoigtModel
 
-X = (2*np.pi*m*k)/np.power(h, 2)  # constant in Saha-Boltzmann equation
-
-conv = 11604.525
-
-Ionization_Au = np.array([74410.39, 165347.465, 241971.9])
-Ionization_Ag = np.array([61107.58, 173332.54, 280929.38])
-Ionization_Ar = np.array([127112.678, 222853.296, 328597.84])
-
-
-def get_atomic_lines(spectrum: str, lower_wavelength: int, upper_wavelength: int):
-    atomic_lines_data = AtomicLinesFetcher().fetch(
-        spectrum, lower_wavelength, upper_wavelength)
-    parsed_data = AtomicLinesParser().parse_atomic_lines(atomic_lines_data)
-    filtered_data = parsed_data[[
-        "obs_wl_air(nm)", "Aki(s^-1)", "Acc", "Ei(cm-1)", "Ek(cm-1)", "g_i", "g_k", "Type"]]
-    return filtered_data[filtered_data["Aki(s^-1)"].notna()].to_numpy()
-
-
-def get_partition_function(spectrum: str, temperature: int):
-    atomic_levels_data = AtomicLevelsFetcher().fetch(spectrum, temperature)
-    return AtomicLevelsParser().parse_partition_function(atomic_levels_data)
-
-
-AuI = get_atomic_lines("Au I", lower_wavelength=300, upper_wavelength=800)
-AgI = get_atomic_lines("Ag I", lower_wavelength=300, upper_wavelength=800)
-
-### Polynomials for partition function###
-Cu = np.array([[1.08605, 8.66998, -18.3398, 15.77519, -2.11931],
-               [1.28222, -2.77724, 5.89866, -3.161, 1.00284],
-               [5.62783, 8.5162, -7.8181, 3.38896, -0.5737]])
-
-Au = np.array([[1.60027, 3.10448, -3.53278, 4.07054, -0.91752],
-               [1.13259, -1.71445, 4.56106, -1.21503, 0.19769],
-               [6, 0, 0, 0, 0]])
-
-Ag = np.array([[1.56653, 4.5309, -11.60646, 10.07343, -2.1638],
-               [0.996, 0.07564, -0.34489, 0.38715, 0.01687],
-               [5.42309, 5.33618, -3.85329, 1.47616, -0.16201]])
-
-Ar = np.array([[2.20045, -5.74972, 9.98936, -7.80378, 2.63179],
-               [4.05678, 3.47587, -2.36249, 0.62967, -0.06836],
-               [5.40247, 7.20943, -4.62452, 1.73503, -0.31713]])
-
-
-def rD(ne, T):
-    # Debye radius in cm (formula is from Fridman Plasma Physics and Enginiering, p202)
-    rD = 742*np.sqrt((T*0.695028)/ne)
-    return rD
-
-
-def ZI(T, polynom):
-    T = T/conv
-    Z = polynom[0, 0] + polynom[0, 1]*T + polynom[0, 2] * \
-        np.power(T, 2) + polynom[0, 3]*np.power(T,
-                                                3) + polynom[0, 4]*np.power(T, 4)
-    return Z
-
-
-def ZII(T, polynom):
-    T = T/conv
-    Z = polynom[1, 0] + polynom[1, 1]*T + polynom[1, 2] * \
-        np.power(T, 2) + polynom[1, 3]*np.power(T,
-                                                3) + polynom[1, 4]*np.power(T, 4)
-    return Z
-
-
-def SB(ne, T, Ionization):
-    SB = 2*(1/ne)*np.power(X, 1.5)*np.power(T, 1.5) * \
-        np.exp(-(Ionization/(T*0.695028)))  # number concentration of argon ions
-    return SB
-
-
-def SB2(T, Ionization):
-    # number concentration of argon ions
-    SB2 = 2*np.power(X, 1.5)*np.power(T, 1.5) * \
-        np.exp(-(Ionization/(T*0.695028)))
-    return SB2
-
-
-def B(T, Ionization, polynom):
-    B = 4*(ZII(T, polynom)/ZI(T, polynom))*SB2(T, Ionization)
-    return B
-
-
-def C(T, Ionization, polynom):
-    C = 2*(ZII(T, polynom)/ZI(T, polynom))*SB2(T, Ionization)*(p/(T*k))
-    return C
-
-
-def D(T, Ionization, polynom):
-    D = np.power(B(T, Ionization, polynom), 2) + 4*1*C(T, Ionization, polynom)
-    return D
-
-
-def ne_estimate(T, Ionization, polynom):
-    ne_estimate = (-1*B(T, Ionization, polynom) +
-                   np.sqrt(D(T, Ionization, polynom)))/(2*1)
-    return ne_estimate
+from new_codebase.spectrum_correction import correct_spectrum, baseline_arPLS
+from new_codebase.electron_conentration_estimation import estimate_electron_concentration, SB
+from new_codebase.gather_data import get_atomic_lines, get_ionization_energy, get_partition_function, read_spectrum
 
 
 def peakfinder(Y, height):
     peak_indices, _ = find_peaks(Y, height, threshold=0, width=2)
     return peak_indices
-
-
-def baseline_arPLS(y, ratio=1E-5, lam=1000000, niter=50, full_output=False):
-    L = len(y)
-
-    diag = np.ones(L - 2)
-    D = sparse.spdiags([diag, -2*diag, diag], [0, -1, -2], L, L - 2)
-
-    # The transposes are flipped w.r.t the Algorithm on pg. 252
-    H = lam * D.dot(D.T)
-
-    w = np.ones(L)
-    W = sparse.spdiags(w, 0, L, L)
-
-    crit = 1
-    count = 0
-
-    while crit > ratio:
-        z = linalg.spsolve(W + H, W * y)
-        d = y - z
-        dn = d[d < 0]
-
-        m = np.mean(dn)
-        s = np.std(dn)
-
-        w_new = 1 / (1 + np.exp(2 * (d - (2*s - m))/s))
-
-        crit = norm(w_new - w) / norm(w)
-
-        w = w_new
-        W.setdiag(w)  # Do not create a new matrix, just update diagonal values
-
-        count += 1
-
-        if count > niter:
-            print('Maximum number of iterations exceeded')
-            break
-
-    if full_output:
-        info = {'num_iter': count, 'stop_criterion': crit}
-        return z, d, info
-    else:
-        return z
 
 
 def integral(spectrum):
@@ -237,39 +84,13 @@ def spec_data(species, peak_table, spectrum):
     return spec_data
 
 
-def corr_spectrum(spectrum):
-    X = spectrum[:, 0]
-    Y = spectrum[:, 1]
-    Y_corr = Y - baseline_arPLS(Y)
-    return np.stack((X, Y_corr), axis=-1)
-
-
-def rsquare(x, y, f):
-    y_mean = np.mean(y)
-    SS_tot = np.sum(np.power(y-y_mean, 2))
-    SS_res = np.sum(np.power(y-f, 2))
-    R2 = 1 - SS_res/SS_tot
-    return R2
-
-
-def T_fit(plot):
-    E = plot[:, 0]
-    ln = plot[:, 1]
-    lin_params = np.polyfit(E, ln, 1)  # Fitting linear to the data
-    linear = lin_params[0]*E + lin_params[1]  # The fitted linear
-    R2 = rsquare(E, ln, linear)
-    T = np.abs(-1/(0.695035*lin_params[0]))
-    n = np.exp(lin_params[1])
-    return np.array([T, n, R2])
-
-
-def AuAg_ratio(AuI_species, AgI_species, spectrum):
+def AuAg_ratio(AuI_species, AgI_species, spectrum, atomic_lines_au1, atomic_lines_ag1):
     ln_ratio = np.zeros((AuI_species.size, AgI_species.size))
     E_value = np.zeros((AuI_species.size, AgI_species.size))
-    AuIdata = spec_data(AuI_species, AuI, spectrum)
+    AuIdata = spec_data(AuI_species, atomic_lines_au1, spectrum)
     AuI_ln = np.divide(np.multiply(
         AuIdata[:, 5], AuIdata[:, 1]*1E-7), np.multiply(AuIdata[:, 3], AuIdata[:, 2]))
-    AgIdata = spec_data(AgI_species, AgI, spectrum)
+    AgIdata = spec_data(AgI_species, atomic_lines_ag1, spectrum)
     AgI_ln = (np.divide(np.multiply(
         AgIdata[:, 5], AgIdata[:, 1]*1E-7), np.multiply(AgIdata[:, 3], AgIdata[:, 2])))
 
@@ -300,25 +121,29 @@ def line_pair(peak_table, species, spectrum, T):
 ## Saha-Boltzmann line-pair plots for Ag/Au###
 
 
-def AuAg_n_concentration(Au_peak_table, Ag_peak_table, spectrum):
-    AuAg_graph = AuAg_ratio(Au_peak_table, Ag_peak_table, spectrum)
+def AuAg_n_concentration(Au_peak_table, Ag_peak_table, spectrum, atomic_lines_au1, atomic_lines_ag1):
+    AuAg_graph = AuAg_ratio(Au_peak_table, Ag_peak_table,
+                            spectrum, atomic_lines_au1, atomic_lines_ag1)
     AuAg_fit = np.polyfit(AuAg_graph[:, 0], AuAg_graph[:, 1], 1)
     TAuAg = (1/(0.695035*AuAg_fit[0]))
-    ag1 = get_partition_function("Ag I", TAuAg)
-    ag2 = get_partition_function("Ag II", TAuAg)
-    print("partition Ag1", ag1)
-    print("partition Ag2", ag2)
-    print("ag2/ag1", ag2/ag1)
-    print("Z2/Z1", ZII(TAuAg, Ag)/ZI(TAuAg, Ag))
-    print(TAuAg)
-    nAuAg = np.exp(AuAg_fit[1])*(ZI(TAuAg, Au)/ZI(TAuAg, Ag))
+    partition_function_ag1 = get_partition_function("Ag I", TAuAg)
+    partition_function_ag2 = get_partition_function("Ag II", TAuAg)
+    partition_function_au1 = get_partition_function("Au I", TAuAg)
+    partition_function_au2 = get_partition_function("Au II", TAuAg)
+    partition_function_ar1 = get_partition_function("Ar I", TAuAg)
+    partition_function_ar2 = get_partition_function("Ar II", TAuAg)
+    first_ionization_energy_ag = get_ionization_energy("Ag I")
+    first_ionization_energy_au = get_ionization_energy("Au I")
+    first_ionization_energy_ar = get_ionization_energy("Ar I")
+    nAuAg = np.exp(AuAg_fit[1])*(partition_function_au1/partition_function_ag1)
     # n_ion_AuAg = nAuAg*(ZII(TAuAg, Au)/ZII(TAuAg, Ag))*(ZI(TAuAg, Ag)/ZI(TAuAg, Au))*np.exp((Ionization_Ag[0]-Ionization_Au[0])/(0.695035*TAuAg))
 
-    ne = ne_estimate(TAuAg, Ionization_Ar[0], Ar)
+    ne = estimate_electron_concentration(
+        TAuAg, first_ionization_energy_ar, partition_function_ar1, partition_function_ar2)
     nAgion_atom = SB(
-        ne, TAuAg, Ionization_Ag[0])*(ZII(TAuAg, Ag)/ZI(TAuAg, Ag))
+        ne, TAuAg, first_ionization_energy_ag)*(partition_function_ag2/partition_function_ag1)
     nAuion_atom = SB(
-        ne, TAuAg, Ionization_Au[0])*(ZII(TAuAg, Au)/ZI(TAuAg, Au))
+        ne, TAuAg, first_ionization_energy_au)*(partition_function_au2/partition_function_au1)
     # nAgatom_ion = 1/nAgion_atom
 
     total_n_AuAg = ((nAuion_atom+1)/(nAgion_atom+1))*nAuAg
@@ -336,12 +161,9 @@ def AuAg_n_concentration(Au_peak_table, Ag_peak_table, spectrum):
     return (TAuAg, total_n_AuAg)
 
 
-### Spectrum to be processed###
-with codecs.open('AuAg-Cu-Ar-2.0mm-100Hz-2s_gate500ns_g100_s500ns_N100_3.2mm.asc', encoding='utf-8-sig') as f:
-    spectrum = np.loadtxt(f)
-    spectrum = np.stack((spectrum[:, 0], spectrum[:, 10]), axis=-1)
-
-corr_spectrum = corr_spectrum(spectrum)
+spectrum = read_spectrum(
+    "AuAg-Cu-Ar-2.0mm-100Hz-2s_gate500ns_g100_s500ns_N100_3.2mm.asc")
+corrected_spectrum = correct_spectrum(spectrum)
 
 ### Peak tables###
 AuI_species = np.array([312.278, 406.507, 479.26])
@@ -364,17 +186,17 @@ plt.title('Original spectrum and baseline')
 plt.figure()
 
 # major peaks in the spectrum
-peaks = peakfinder(corr_spectrum[:, 1], set_height)
-integrals = integral(corr_spectrum)  # integrals of the peaks
-left = peak_prominences(corr_spectrum[:, 1], peaks, wlen=set_wlen)[
+peaks = peakfinder(corrected_spectrum[:, 1], set_height)
+integrals = integral(corrected_spectrum)  # integrals of the peaks
+left = peak_prominences(corrected_spectrum[:, 1], peaks, wlen=set_wlen)[
     1]  # lower integration limit of each line
-right = peak_prominences(corr_spectrum[:, 1], peaks, wlen=set_wlen)[
+right = peak_prominences(corrected_spectrum[:, 1], peaks, wlen=set_wlen)[
     2]  # upper integration limit of each line
 
-plt.plot(corr_spectrum[:, 0], corr_spectrum[:, 1])
-plt.plot(corr_spectrum[peaks, 0], corr_spectrum[peaks, 1], "x")
-plt.plot(corr_spectrum[left, 0], corr_spectrum[left, 1], "o")
-plt.plot(corr_spectrum[right, 0], corr_spectrum[right, 1], "o")
+plt.plot(corrected_spectrum[:, 0], corrected_spectrum[:, 1])
+plt.plot(corrected_spectrum[peaks, 0], corrected_spectrum[peaks, 1], "x")
+plt.plot(corrected_spectrum[left, 0], corrected_spectrum[left, 1], "o")
+plt.plot(corrected_spectrum[right, 0], corrected_spectrum[right, 1], "o")
 plt.xlim([wl_start, wl_end])
 plt.ylim([-100, 10000])
 plt.xlabel('Wavelength (nm)')
@@ -382,12 +204,20 @@ plt.ylabel('Intensity (a.u.)')
 plt.title('Baseline corrected spectrum with the major peaks')
 plt.figure()
 
+atomic_lines_au1 = get_atomic_lines(
+    "Au I", lower_wavelength=300, upper_wavelength=800)
+atomic_lines_ag1 = get_atomic_lines(
+    "Ag I", lower_wavelength=300, upper_wavelength=800)
 
-TAuAg = AuAg_n_concentration(AuI_species, AgI_species, corr_spectrum)[0]
-total_n_AuAg = AuAg_n_concentration(AuI_species, AgI_species, corr_spectrum)[1]
+TAuAg = AuAg_n_concentration(
+    AuI_species, AgI_species, corrected_spectrum, atomic_lines_au1, atomic_lines_ag1)[0]
+total_n_AuAg = AuAg_n_concentration(
+    AuI_species, AgI_species, corrected_spectrum, atomic_lines_au1, atomic_lines_ag1)[1]
 
-AuI_linepair_check = line_pair(AuI_species, AuI, corr_spectrum, TAuAg)
-AgI_linepair_check = line_pair(AgI_species, AgI, corr_spectrum, TAuAg)
+AuI_linepair_check = line_pair(
+    AuI_species, atomic_lines_au1, corrected_spectrum, TAuAg)
+AgI_linepair_check = line_pair(
+    AgI_species, atomic_lines_ag1, corrected_spectrum, TAuAg)
 
 print(f"AuI linepair deviations: {AuI_linepair_check}")
 print(f"AgI linepair deviations: {AgI_linepair_check}")
