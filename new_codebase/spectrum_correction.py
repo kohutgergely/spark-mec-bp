@@ -47,8 +47,8 @@ def baseline_arPLS(y, ratio=1E-5, lam=1000000, niter=50, full_output=False):
         return z
 
 
-def correct_spectrum(spectrum):
+def correct_spectrum(spectrum, baseline):
     X = spectrum[:, 0]
     Y = spectrum[:, 1]
-    Y_corr = Y - baseline_arPLS(Y)
+    Y_corr = Y - baseline
     return np.stack((X, Y_corr), axis=-1)

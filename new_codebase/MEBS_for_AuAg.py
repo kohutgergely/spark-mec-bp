@@ -16,10 +16,9 @@ def peakfinder(Y, height):
     return peak_indices
 
 
-def integral(spectrum):
+def integral(spectrum, peaks):
     X = spectrum[:, 0]
     Y = spectrum[:, 1]
-    peaks = peakfinder(Y, height=set_height)
     prominences = peak_prominences(Y, peaks, wlen=set_wlen)
     left_base = prominences[1]
     right_base = prominences[2]
@@ -33,11 +32,11 @@ def integral(spectrum):
     return integrals
 
 
-def Voigt_integral(spectrum, selected_peak):
+def Voigt_integral(spectrum, peaks, selected_peak):
     wavelength = spectrum[:, 0]
     Y = spectrum[:, 1]
-    all_peaks = np.stack((peakfinder(Y, height=set_height),
-                         wavelength[peakfinder(Y, height=set_height)]), axis=-1)
+    all_peaks = np.stack((peaks,
+                         wavelength[peaks]), axis=-1)
     selected_peak_idx = find_nearest(all_peaks[:, 1], selected_peak)
     selected_peak_idx_array = np.array([int(all_peaks[selected_peak_idx, 0])])
     prominences = peak_prominences(Y, selected_peak_idx_array, wlen=set_wlen)
@@ -65,9 +64,8 @@ def find_nearest(array, value):
     return idx
 
 
-def spec_data(species, peak_table, spectrum):
+def spec_data(species, peak_table, spectrum, integrals, peaks):
     spec_data = np.zeros((species.size, 7))
-    integrals = integral(spectrum)
     for i in range(0, species.size):
         spec_data[i, 0] = species[i]  # wavelength of selected line
         idx = find_nearest(peak_table[:, 0], species[i])
@@ -77,35 +75,32 @@ def spec_data(species, peak_table, spectrum):
         spec_data[i, 3] = peak_table[idx, 6]  # gi
         spec_data[i, 4] = peak_table[idx, 4]  # Ei
         idx2 = find_nearest(integrals[:, 0], species[i])
-        Voigt_area = Voigt_integral(spectrum, species[i])
+        Voigt_area = Voigt_integral(spectrum, peaks, species[i])
         # spec_data[i,5] = integrals[idx2,1] # integral of the line
         spec_data[i, 5] = Voigt_area  # integral of the line
         spec_data[i, 6] = integrals[idx2, 0]
     return spec_data
 
 
-def AuAg_ratio(AuI_species, AgI_species, spectrum, atomic_lines_au1, atomic_lines_ag1):
-    ln_ratio = np.zeros((AuI_species.size, AgI_species.size))
-    E_value = np.zeros((AuI_species.size, AgI_species.size))
-    AuIdata = spec_data(AuI_species, atomic_lines_au1, spectrum)
+def AuAg_ratio(AuIdata, AgIdata):
+    ln_ratio = np.zeros((len(AuIdata), len(AgIdata)))
+    E_value = np.zeros((len(AuIdata), len(AgIdata)))
     AuI_ln = np.divide(np.multiply(
         AuIdata[:, 5], AuIdata[:, 1]*1E-7), np.multiply(AuIdata[:, 3], AuIdata[:, 2]))
-    AgIdata = spec_data(AgI_species, atomic_lines_ag1, spectrum)
     AgI_ln = (np.divide(np.multiply(
         AgIdata[:, 5], AgIdata[:, 1]*1E-7), np.multiply(AgIdata[:, 3], AgIdata[:, 2])))
 
-    for i in range(0, AuI_species.size):
+    for i in range(0, len(AuIdata)):
         ln_ratio[i, :] = np.log(np.divide(AuI_ln[i], AgI_ln))
         E_value[i, :] = np.subtract(AgIdata[:, 4], AuIdata[i, 4])
 
-    ln_ratios = np.reshape(ln_ratio, AuI_species.size*AgI_species.size)
-    E_values = np.reshape(E_value, AuI_species.size*AgI_species.size)
+    ln_ratios = np.reshape(ln_ratio, len(AuIdata)*len(AgIdata))
+    E_values = np.reshape(E_value, len(AuIdata)*len(AgIdata))
 
     return np.stack((E_values, ln_ratios), axis=-1)
 
 
-def line_pair(peak_table, species, spectrum, T):
-    line_data = spec_data(peak_table, species, spectrum)
+def line_pair(peak_table, line_data, T):
     linepairs = np.zeros((peak_table.size, peak_table.size))
     linepairs[:, 0] = peak_table
     linepairs[0, :] = peak_table
@@ -121,9 +116,7 @@ def line_pair(peak_table, species, spectrum, T):
 ## Saha-Boltzmann line-pair plots for Ag/Au###
 
 
-def AuAg_n_concentration(Au_peak_table, Ag_peak_table, spectrum, atomic_lines_au1, atomic_lines_ag1):
-    AuAg_graph = AuAg_ratio(Au_peak_table, Ag_peak_table,
-                            spectrum, atomic_lines_au1, atomic_lines_ag1)
+def AuAg_n_concentration(AuAg_graph):
     AuAg_fit = np.polyfit(AuAg_graph[:, 0], AuAg_graph[:, 1], 1)
     TAuAg = (1/(0.695035*AuAg_fit[0]))
     partition_function_ag1 = get_partition_function("Ag I", TAuAg)
@@ -161,10 +154,6 @@ def AuAg_n_concentration(Au_peak_table, Ag_peak_table, spectrum, atomic_lines_au
     return (TAuAg, total_n_AuAg)
 
 
-spectrum = read_spectrum(
-    "AuAg-Cu-Ar-2.0mm-100Hz-2s_gate500ns_g100_s500ns_N100_3.2mm.asc")
-corrected_spectrum = correct_spectrum(spectrum)
-
 ### Peak tables###
 AuI_species = np.array([312.278, 406.507, 479.26])
 AgI_species = np.array([338.29, 520.9078, 546.54])
@@ -175,19 +164,32 @@ wl_end = 410  # upper limit for plots
 set_wlen = 40  # the wlen parameter for the prominence function
 set_height = 100
 
-
-plt.plot(spectrum[:, 0], spectrum[:, 1])
-plt.plot(spectrum[:, 0], baseline_arPLS(spectrum[:, 1]))
-plt.xlim([310, 800])
-# plt.ylim([4.5, 5])
-plt.xlabel('Wavelength (nm)')
-plt.ylabel('Intensity (a.u.)')
-plt.title('Original spectrum and baseline')
-plt.figure()
-
+spectrum = read_spectrum(
+    "AuAg-Cu-Ar-2.0mm-100Hz-2s_gate500ns_g100_s500ns_N100_3.2mm.asc")
+baseline = baseline_arPLS(spectrum[:, 1])
+corrected_spectrum = correct_spectrum(spectrum, baseline)
 # major peaks in the spectrum
 peaks = peakfinder(corrected_spectrum[:, 1], set_height)
-integrals = integral(corrected_spectrum)  # integrals of the peaks
+
+integrals = integral(corrected_spectrum, peaks)  # integrals of the peaks
+
+atomic_lines_au1 = get_atomic_lines(
+    "Au I", lower_wavelength=300, upper_wavelength=800)
+atomic_lines_ag1 = get_atomic_lines(
+    "Ag I", lower_wavelength=300, upper_wavelength=800)
+
+AuIdata = spec_data(AuI_species, atomic_lines_au1,
+                    corrected_spectrum, integrals, peaks)
+AgIdata = spec_data(AgI_species, atomic_lines_ag1,
+                    corrected_spectrum, integrals, peaks)
+AuAg_graph = AuAg_ratio(AuIdata, AgIdata)
+
+TAuAg, total_n_AuAg = AuAg_n_concentration(AuAg_graph)
+
+AuI_linepair_check = line_pair(AuI_species, AuIdata, TAuAg)
+AgI_linepair_check = line_pair(AgI_species, AgIdata, TAuAg)
+
+
 left = peak_prominences(corrected_spectrum[:, 1], peaks, wlen=set_wlen)[
     1]  # lower integration limit of each line
 right = peak_prominences(corrected_spectrum[:, 1], peaks, wlen=set_wlen)[
@@ -204,20 +206,15 @@ plt.ylabel('Intensity (a.u.)')
 plt.title('Baseline corrected spectrum with the major peaks')
 plt.figure()
 
-atomic_lines_au1 = get_atomic_lines(
-    "Au I", lower_wavelength=300, upper_wavelength=800)
-atomic_lines_ag1 = get_atomic_lines(
-    "Ag I", lower_wavelength=300, upper_wavelength=800)
+plt.plot(spectrum[:, 0], spectrum[:, 1])
+plt.plot(spectrum[:, 0], baseline)
+plt.xlim([310, 800])
+# plt.ylim([4.5, 5])
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Intensity (a.u.)')
+plt.title('Original spectrum and baseline')
+plt.figure()
 
-TAuAg = AuAg_n_concentration(
-    AuI_species, AgI_species, corrected_spectrum, atomic_lines_au1, atomic_lines_ag1)[0]
-total_n_AuAg = AuAg_n_concentration(
-    AuI_species, AgI_species, corrected_spectrum, atomic_lines_au1, atomic_lines_ag1)[1]
-
-AuI_linepair_check = line_pair(
-    AuI_species, atomic_lines_au1, corrected_spectrum, TAuAg)
-AgI_linepair_check = line_pair(
-    AgI_species, atomic_lines_ag1, corrected_spectrum, TAuAg)
 
 print(f"AuI linepair deviations: {AuI_linepair_check}")
 print(f"AgI linepair deviations: {AgI_linepair_check}")
