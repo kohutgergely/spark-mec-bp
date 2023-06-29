@@ -1,12 +1,15 @@
 import numpy as np
 from scipy.signal import find_peaks, peak_prominences
+from data_preparation.spectrum_correction import SpectrumCorrector
+from data_preparation.spectrum_reader import SpectrumReader
+from data_preparation.peak_finder import PeakFinder
+from data_preparation.integral_calculator import IntegralCalculator
 import scipy
 
 from matplotlib import pyplot as plt
 
 from lmfit.models import PseudoVoigtModel
 
-from new_codebase.spectrum_correction import correct_spectrum, baseline_arPLS
 from new_codebase.electron_conentration_estimation import estimate_electron_concentration, SB
 from new_codebase.gather_data import get_atomic_lines, get_ionization_energy, get_partition_function, read_spectrum
 
@@ -16,67 +19,48 @@ def peakfinder(Y, height):
     return peak_indices
 
 
-def integral(spectrum, peaks):
-    X = spectrum[:, 0]
-    Y = spectrum[:, 1]
-    _, left_base, right_base = peak_prominences(Y, peaks, wlen=set_wlen)
-    integrals = np.zeros((X.size, 2))
-    for i in range(0, left_base.size):
-        peak_X = X[left_base[i]:right_base[i]:1]
-        peak_Y = Y[left_base[i]:right_base[i]:1]
-        peak_int = np.trapz(peak_Y, peak_X)
-        integrals[i, 0] = X[peaks[i]]
-        integrals[i, 1] = peak_int  # *(h*c/(X[peaks[i]]*1E-7))
-    return integrals
+def find_nearest_indices(spectrum_data, target_peaks, taget_column):
+    indices = np.abs(spectrum_data[:, taget_column] -
+                     target_peaks[:, np.newaxis]).argmin(axis=1)
+
+    return indices
 
 
-def Voigt_integral(spectrum, peaks, selected_peak):
+def Voigt_integral(spectrum, peaks, selected_peaks):
     wavelength = spectrum[:, 0]
     Y = spectrum[:, 1]
     all_peaks = np.stack((peaks,
                          wavelength[peaks]), axis=-1)
-    selected_peak_idx = find_nearest(all_peaks[:, 1], selected_peak)
-    selected_peak_idx_array = np.array([int(all_peaks[selected_peak_idx, 0])])
-    prominences = peak_prominences(Y, selected_peak_idx_array, wlen=set_wlen)
-    start_index = int(prominences[1])
-    end_index = 2*int(all_peaks[selected_peak_idx, 0])-int(prominences[1])
-    # start_wavelength = wavelength[start_index]
-    # end_wavelength = wavelength[end_index]
-    peak_wavelength = wavelength[start_index:end_index+1]
-    peak_spectrum = Y[start_index:end_index+1]
-    voigt_model = PseudoVoigtModel()
-    params = voigt_model.guess(peak_spectrum, x=peak_wavelength)
-    voigt_fit = voigt_model.fit(peak_spectrum, params, x=peak_wavelength)
-    plt.plot(peak_wavelength, peak_spectrum, 'o', label='Original spectrum')
-    plt.plot(peak_wavelength, voigt_fit.best_fit, label='Voigt fit')
-    plt.legend()
-    plt.show()
-    area = np.trapz(voigt_fit.best_fit, peak_wavelength)
-    # print(f"The area under the fitted Voigt function is: {area}")
-    return area
+
+    voigt_integrals = []
+    selected_peak_indices = find_nearest_indices(all_peaks, selected_peaks, 1)
+    for selected_peak_idx in selected_peak_indices:
+        selected_peak_idx_array = np.array(
+            [int(all_peaks[selected_peak_idx, 0])])
+
+        prominences = peak_prominences(
+            Y, selected_peak_idx_array, wlen=set_wlen)
+        start_index = int(prominences[1])
+        end_index = 2*int(all_peaks[selected_peak_idx, 0])-int(prominences[1])
+        peak_wavelength = wavelength[start_index:end_index+1]
+        peak_spectrum = Y[start_index:end_index+1]
+        voigt_model = PseudoVoigtModel()
+        params = voigt_model.guess(peak_spectrum, x=peak_wavelength)
+        voigt_fit = voigt_model.fit(peak_spectrum, params, x=peak_wavelength)
+        plt.plot(peak_wavelength, peak_spectrum,
+                 'o', label='Original spectrum')
+        plt.plot(peak_wavelength, voigt_fit.best_fit, label='Voigt fit')
+        plt.legend()
+        plt.show()
+        area = np.trapz(voigt_fit.best_fit, peak_wavelength)
+        voigt_integrals.append(area)
+        # print(f"The area under the fitted Voigt function is: {area}")
+    return np.array(voigt_integrals)
 
 
 def find_nearest(array, value):
     array = np.asarray(array)
     return (np.abs(array - value)).argmin()
-
-
-def spec_data(species, peak_table, spectrum, integrals, peaks):
-    spec_data = np.zeros((species.size, 7))
-    for i in range(0, species.size):
-        spec_data[i, 0] = species[i]  # wavelength of selected line
-        idx = find_nearest(peak_table[:, 0], species[i])
-        # NIST wavelength of the selected line
-        spec_data[i, 1] = peak_table[idx, 0]
-        spec_data[i, 2] = peak_table[idx, 1]  # Aki
-        spec_data[i, 3] = peak_table[idx, 6]  # gi
-        spec_data[i, 4] = peak_table[idx, 4]  # Ei
-        idx2 = find_nearest(integrals[:, 0], species[i])
-        Voigt_area = Voigt_integral(spectrum, peaks, species[i])
-        # spec_data[i,5] = integrals[idx2,1] # integral of the line
-        spec_data[i, 5] = Voigt_area  # integral of the line
-        spec_data[i, 6] = integrals[idx2, 0]
-    return spec_data
 
 
 def AuAg_ratio(AuIdata, AgIdata):
@@ -127,6 +111,10 @@ def AuAg_n_concentration(nAuAg, nAuion_atom, nAgion_atom):
     return ((nAuion_atom+1)/(nAgion_atom+1))*nAuAg
 
 
+def prepare_data(target_peaks, atomic_lines, voigt_area):
+    return np.concatenate((target_peaks[:, np.newaxis], atomic_lines, voigt_area[:, np.newaxis]), axis=1)
+
+
 ### Peak tables###
 AuI_species = np.array([312.278, 406.507, 479.26])
 AgI_species = np.array([338.29, 520.9078, 546.54])
@@ -137,24 +125,29 @@ wl_end = 410  # upper limit for plots
 set_wlen = 40  # the wlen parameter for the prominence function
 set_height = 100
 
-spectrum = read_spectrum(
-    "AuAg-Cu-Ar-2.0mm-100Hz-2s_gate500ns_g100_s500ns_N100_3.2mm.asc")
-baseline = baseline_arPLS(spectrum[:, 1])
-corrected_spectrum = correct_spectrum(spectrum, baseline)
-# major peaks in the spectrum
-peaks = peakfinder(corrected_spectrum[:, 1], set_height)
+spectrum = SpectrumReader().read_ascii_spectrum_to_numpy(
+    file_path="AuAg-Cu-Ar-2.0mm-100Hz-2s_gate500ns_g100_s500ns_N100_3.2mm.asc")
+spectrum_corrector = SpectrumCorrector(spectrum=spectrum,
+                                       wavelength_column_index=0, intensity_column_index=10)
+corrected_spectrum = spectrum_corrector.correct_spectrum()
+peak_finder = PeakFinder(required_height=set_height)
 
-integrals = integral(corrected_spectrum, peaks)  # integrals of the peaks
+peaks = peak_finder.find_peak_indices(corrected_spectrum[:, 1])
 
-atomic_lines_au1 = get_atomic_lines(
-    "Au I", lower_wavelength=300, upper_wavelength=800)
-atomic_lines_ag1 = get_atomic_lines(
-    "Ag I", lower_wavelength=300, upper_wavelength=800)
+integral_calculator = IntegralCalculator(
+    peak_finder=peak_finder, prominance_wlen=set_wlen)
+au1_integrals = integral_calculator.calculate_integrals(
+    corrected_spectrum, AuI_species)
+ag1_integrals = integral_calculator.calculate_integrals(
+    corrected_spectrum, AgI_species)
 
-AuIdata = spec_data(AuI_species, atomic_lines_au1,
-                    corrected_spectrum, integrals, peaks)
-AgIdata = spec_data(AgI_species, atomic_lines_ag1,
-                    corrected_spectrum, integrals, peaks)
+atomic_lines_au1 = get_atomic_lines("Au I", target_peaks=AuI_species)
+atomic_lines_ag1 = get_atomic_lines("Ag I", target_peaks=AgI_species)
+
+
+AuIdata = prepare_data(AuI_species, atomic_lines_au1, au1_integrals)
+AgIdata = prepare_data(AgI_species, atomic_lines_ag1, ag1_integrals)
+
 AuAg_graph = AuAg_ratio(AuIdata, AgIdata)
 
 AuAg_fit = fit_graph(AuAg_graph)
@@ -214,7 +207,7 @@ plt.title('Baseline corrected spectrum with the major peaks')
 plt.figure()
 
 plt.plot(spectrum[:, 0], spectrum[:, 1])
-plt.plot(spectrum[:, 0], baseline)
+plt.plot(spectrum[:, 0], spectrum_corrector.get_baseline())
 plt.xlim([310, 800])
 # plt.ylim([4.5, 5])
 plt.xlabel('Wavelength (nm)')

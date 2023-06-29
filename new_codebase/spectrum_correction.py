@@ -32,7 +32,8 @@ def baseline_arPLS(y, ratio=1E-5, lam=1000000, niter=50, full_output=False):
         crit = norm(w_new - w) / norm(w)
 
         w = w_new
-        W.setdiag(w)  # Do not create a new matrix, just update diagonal values
+        # Do not create a new matrix, just update diagonal values
+        W.setdiag(w)
 
         count += 1
 
