@@ -5,43 +5,51 @@ from lmfit.models import PseudoVoigtModel
 
 
 class IntegralCalculator:
-    def __init__(self, peak_finder: PeakFinder, prominance_wlen: int) -> None:
+    def __init__(self, peak_finder: PeakFinder, prominance_window_length: int) -> None:
         self.peak_finder = peak_finder
-        self.prominance_wlen = prominance_wlen
+        self.prominance_wlen = prominance_window_length
 
-    def calculate_integrals(self, spectrum: np.ndarray, target_peaks: np.array):
-        peaks = self.peak_finder.find_peak_indices(spectrum[:, 1])
-        self.wavelength = spectrum[:, 0]
-        self.Y = spectrum[:, 1]
-        self.all_peaks = np.stack((peaks,
-                                   self.wavelength[peaks]), axis=-1)
+    def calculate_integrals(self, spectrum, target_wavelengths: np.array):
+        wavelengths = spectrum[:, 0]
+        intensities = spectrum[:, 1]
+        peak_index_table = self.peak_finder.find_peak_indices(
+            intensities)
+        peak_index_table_with_wavelengths = self._combine_peak_indices_with_wavelengths(
+            wavelengths, peak_index_table)
 
         voigt_integrals = []
-        selected_peak_indices = self._find_nearest_indices(
-            self.all_peaks, target_peaks)
-        for peak_index in selected_peak_indices:
-            area = self._caluclate_voigt_integral(peak_index)
+        peak_indices_to_integrate = self._find_peak_indices_nearest_to_target_wavelengths(
+            peak_index_table_with_wavelengths, target_wavelengths)
+
+        for peak_index in peak_indices_to_integrate:
+            area = self._caluclate_voigt_integral(
+                peak_index, peak_index_table_with_wavelengths, wavelengths, intensities)
             voigt_integrals.append(area)
 
         return np.array(voigt_integrals)
 
-    def _find_nearest_indices(self, spectrum, target_peaks):
-        return np.abs(spectrum[:, 1] -
-                      target_peaks[:, np.newaxis]).argmin(axis=1)
+    def _combine_peak_indices_with_wavelengths(self, wavelengths, spectrum_peak_indices):
+        return np.stack((spectrum_peak_indices,
+                         wavelengths[spectrum_peak_indices]), axis=-1)
 
-    def _caluclate_voigt_integral(self, peak_index):
-        selected_peak_idx_array = np.array(
-            [int(self.all_peaks[peak_index, 0])])
+    def _find_peak_indices_nearest_to_target_wavelengths(self, peak_index_table_with_wavelengths, target_wavelengths):
+        return np.abs(peak_index_table_with_wavelengths[:, 1] -
+                      target_wavelengths[:, np.newaxis]).argmin(axis=1)
 
+    def _caluclate_voigt_integral(self, peak_index_in_peak_table, peak_index_table_with_wavelengths, wavelengths, intensities):
+        peak_index_in_spectrum = int(
+            peak_index_table_with_wavelengths[peak_index_in_peak_table, 0])
         prominences = peak_prominences(
-            self.Y, selected_peak_idx_array, wlen=self.prominance_wlen)
-        start_index = int(prominences[1])
-        end_index = 2 * \
-            int(self.all_peaks[peak_index, 0])-int(prominences[1])
-        peak_wavelength = self.wavelength[start_index:end_index+1]
-        peak_spectrum = self.Y[start_index:end_index+1]
+            intensities, [peak_index_in_spectrum], wlen=self.prominance_wlen)
+        peak_start_index = int(prominences[1])
+        peak_end_index = 2 * \
+            int(peak_index_table_with_wavelengths[peak_index_in_peak_table, 0]
+                )-int(prominences[1])
+        peak_wavelengths = wavelengths[peak_start_index:peak_end_index+1]
+        peak_intensities = intensities[peak_start_index:peak_end_index+1]
         voigt_model = PseudoVoigtModel()
-        params = voigt_model.guess(peak_spectrum, x=peak_wavelength)
+        params = voigt_model.guess(peak_intensities, x=peak_wavelengths)
         voigt_fit = voigt_model.fit(
-            peak_spectrum, params, x=peak_wavelength)
-        return np.trapz(voigt_fit.best_fit, peak_wavelength)
+            peak_intensities, params, x=peak_wavelengths)
+
+        return np.trapz(voigt_fit.best_fit, peak_wavelengths)

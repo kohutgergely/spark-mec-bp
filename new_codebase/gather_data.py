@@ -19,34 +19,6 @@ def get_atomic_lines(spectrum: str, lower_wavelength: int, upper_wavelength: int
     return filtered_data[filtered_data["Aki(s^-1)"].notna()].to_numpy()
 
 
-def get_atomic_lines(spectrum: str, target_peaks: np.ndarray):
-    lower_wavelength, upper_wavelength = _get_wavelength_range(target_peaks)
-    atomic_lines_data = AtomicLinesFetcher().fetch(
-        spectrum, lower_wavelength, upper_wavelength)
-    parsed_data = AtomicLinesParser().parse_atomic_lines(atomic_lines_data)
-    filtered_data = parsed_data[[
-        "obs_wl_air(nm)", "Aki(s^-1)", "g_k", "Ek(cm-1)"]]
-
-    filtered = _find_nearest(
-        filtered_data[filtered_data["Aki(s^-1)"].notna()].to_numpy().astype(float), target_peaks)
-
-    return filtered
-
-
-def _get_wavelength_range(target_peaks: np.ndarray):
-    lower_wavelength = int((np.floor(target_peaks/100)*100).min())
-    upper_wavelength = int((np.ceil(target_peaks/100)*100).max())
-
-    return lower_wavelength, upper_wavelength
-
-
-def _find_nearest(spectrum_data, target_peaks):
-    indices = np.abs(spectrum_data[:, 0] -
-                     target_peaks[:, np.newaxis]).argmin(axis=1)
-
-    return spectrum_data[indices]
-
-
 def get_partition_function(spectrum: str, temperature: int):
     KELVIN_TO_ELECTRONVOLT_CONVERSION_FACTOR = 8.61732814974493E-05
 
