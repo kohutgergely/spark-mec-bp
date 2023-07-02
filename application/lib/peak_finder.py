@@ -8,6 +8,7 @@ class PeakFinder:
 
     def find_peak_indices(self, intensities: np.array) -> np.array:
         peak_indices, _ = find_peaks(
-            intensities, self.required_height, threshold=0, width=2)
+            intensities, self.required_height, threshold=0, width=2
+        )
 
         return peak_indices

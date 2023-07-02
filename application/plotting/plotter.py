@@ -41,16 +41,12 @@ class Plotter:
             spectrum_correction_data.corrected_spectrum[:, 1],
             peak_indices,
             wlen=wlen,
-        )[
-            1
-        ]  # lower integration limit of each line
+        )[1]
         right = peak_prominences(
             spectrum_correction_data.corrected_spectrum[:, 1],
             peak_indices,
             wlen=wlen,
-        )[
-            2
-        ]  # upper integration limit of each line
+        )[2]
 
         plt.plot(
             spectrum_correction_data.corrected_spectrum[:, 0],
