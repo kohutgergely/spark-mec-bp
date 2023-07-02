@@ -12,17 +12,17 @@ class Plotter:
         plt.title("Original spectrum and baseline")
         plt.figure()
 
-    def plot_saha_boltzmann_line_pairs(self, atom_concentration_data):
+    def plot_saha_boltzmann_line_pairs(self, intensity_ratios_data):
         plt.plot(
-            atom_concentration_data.intensity_ratios[:, 0],
-            atom_concentration_data.intensity_ratios[:, 1],
+            intensity_ratios_data.intensity_ratios[:, 0],
+            intensity_ratios_data.intensity_ratios[:, 1],
             "x",
         )
         plt.plot(
-            atom_concentration_data.intensity_ratios[:, 0],
-            atom_concentration_data.intensity_ratios[:, 0]
-            * atom_concentration_data.fitted_intensity_ratios[0]
-            + atom_concentration_data.fitted_intensity_ratios[1],
+            intensity_ratios_data.intensity_ratios[:, 0],
+            intensity_ratios_data.intensity_ratios[:, 0]
+            * intensity_ratios_data.fitted_intensity_ratios[0]
+            + intensity_ratios_data.fitted_intensity_ratios[1],
         )
         plt.xlabel("Difference of upper energy levels (cm-1)")
         plt.ylabel("log of line intensity ratios (a.u.)")

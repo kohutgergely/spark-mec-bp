@@ -1,6 +1,7 @@
 import numpy as np
 
 from plotting import Plotter
+from logger import Logger
 from readers import ASCIISpectrumReader
 from lib import (
     PeakFinder,
@@ -8,6 +9,8 @@ from lib import (
     LinePairChecker,
     VoigtIntegralCalculator,
     ElectronConcentrationCalculator,
+    IntensityRatiosCalculator,
+    TemperatureCalculator,
 )
 from calculators import (
     AtomConcentraionCalculator,
@@ -34,13 +37,19 @@ from nist.parsers import (
 
 
 def app():
+    logger = Logger().new()
     first_species_target_peaks = np.array([312.278, 406.507, 479.26])
     second_species_target_peaks = np.array([338.29, 520.9078, 546.54])
 
     set_wlen = 40  # the wlen parameter for the prominence function
     set_height = 100
-    first_species_name = "Au I"
-    second_species_name = "Ag I"
+    first_species_atom_name = "Au I"
+    first_species_ion_name = "Au II"
+    second_species_atom_name = "Ag I"
+    second_species_ion_name = "Ag II"
+    medium_species_atom_name = "Ar I"
+    medium_species_ion_name = "Ar II"
+
     spectrum_path = "AuAg-Cu-Ar-2.0mm-100Hz-2s_gate500ns_g100_s500ns_N100_3.2mm.asc"
 
     spectrum = ASCIISpectrumReader().read_spectrum_to_numpy(file_path=spectrum_path)
@@ -78,7 +87,7 @@ def app():
     )
 
     first_species_atomic_lines = atomic_lines_data_getter.get_data(
-        first_species_name, first_species_target_peaks
+        first_species_atom_name, first_species_target_peaks
     )
 
     second_species_integrals = integral_calculator.calculate_integrals(
@@ -88,85 +97,107 @@ def app():
     )
 
     second_species_atomic_lines = atomic_lines_data_getter.get_data(
-        second_species_name, second_species_target_peaks
+        second_species_atom_name, second_species_target_peaks
     )
 
-    atom_concentration_data = AtomConcentraionCalculator(
-        partition_function_data_getter=partition_function_data_getter
-    ).calculate(
-        first_species_name=first_species_name,
+    intensity_ratio_data = IntensityRatiosCalculator().calculate(
         first_species_atomic_lines=first_species_atomic_lines,
         first_species_integrals=first_species_integrals,
-        second_species_name=second_species_name,
         second_species_atomic_lines=second_species_atomic_lines,
         second_species_integrals=second_species_integrals,
     )
-
-    electron_concentration = ElectronConcentrationCalculator(
-        partition_function_data_getter=partition_function_data_getter,
-        ionization_energy_data_getter=ionization_energy_data_getter,
-    ).calculate(
-        temperature=atom_concentration_data.temperature,
-        species_name="Ar I",
-        partition_function_atom="Ar I",
-        partition_function_ion="Ar II",
+    temperature = TemperatureCalculator().calculate(
+        intensity_ratio_data.fitted_intensity_ratios
+    )
+    partition_function_first_species_atom = partition_function_data_getter.get_data(
+        species_name=first_species_atom_name, temperature=temperature
+    )
+    partition_function_second_species_atom = partition_function_data_getter.get_data(
+        species_name=second_species_atom_name, temperature=temperature
+    )
+    atom_concentration = AtomConcentraionCalculator().calculate(
+        fitted_ratios=intensity_ratio_data.fitted_intensity_ratios,
+        first_species_partition_function=partition_function_first_species_atom,
+        second_species_partition_function=partition_function_second_species_atom,
+    )
+    partition_function_medium_species_atom = partition_function_data_getter.get_data(
+        species_name=medium_species_atom_name, temperature=temperature
+    )
+    partition_function_medium_species_ion = partition_function_data_getter.get_data(
+        species_name=medium_species_ion_name, temperature=temperature
+    )
+    ionization_energy_medium_species = ionization_energy_data_getter.get_data(
+        medium_species_atom_name
+    )
+    electron_concentration = ElectronConcentrationCalculator().calculate(
+        temperature=temperature,
+        ionization_energy=ionization_energy_medium_species,
+        partition_function_atom=partition_function_medium_species_atom,
+        partition_function_ion=partition_function_medium_species_ion,
     )
 
-    nAgion_atom = IonAtomConcentraionCalculator(
-        partition_function_data_getter=partition_function_data_getter,
-        ionization_energy_data_getter=ionization_energy_data_getter,
-    ).calculate(
-        electron_concentration=electron_concentration,
-        temperature=atom_concentration_data.temperature,
-        species_name="Ag I",
-        partition_function_atom_name="Ag I",
-        partition_function_ion_name="Ag II",
+    partition_function_first_species_ion = partition_function_data_getter.get_data(
+        species_name=first_species_ion_name, temperature=temperature
     )
 
-    nAuion_atom = IonAtomConcentraionCalculator(
-        partition_function_data_getter=partition_function_data_getter,
-        ionization_energy_data_getter=ionization_energy_data_getter,
-    ).calculate(
+    ionization_energy_first_species = ionization_energy_data_getter.get_data(
+        first_species_atom_name
+    )
+
+    first_species_ion_atom_concentration = IonAtomConcentraionCalculator().calculate(
         electron_concentration=electron_concentration,
-        temperature=atom_concentration_data.temperature,
-        species_name="Au I",
-        partition_function_atom_name="Au I",
-        partition_function_ion_name="Au II",
+        temperature=temperature,
+        ionization_energy=ionization_energy_first_species,
+        partition_function_atom=partition_function_first_species_atom,
+        partition_function_ion=partition_function_first_species_ion,
+    )
+
+    partition_function_second_species_ion = partition_function_data_getter.get_data(
+        species_name=second_species_ion_name, temperature=temperature
+    )
+
+    ionization_energy_second_species = ionization_energy_data_getter.get_data(
+        second_species_atom_name
+    )
+
+    second_species_ion_atom_concentration = IonAtomConcentraionCalculator().calculate(
+        electron_concentration=electron_concentration,
+        temperature=temperature,
+        ionization_energy=ionization_energy_second_species,
+        partition_function_atom=partition_function_second_species_atom,
+        partition_function_ion=partition_function_second_species_ion,
     )
 
     total_concentration = TotalConcentrationCalculator().calculate(
-        atom_concentration_data.atom_concentration_ratio,
-        nAuion_atom,
-        nAgion_atom,
+        atom_concentration,
+        first_species_ion_atom_concentration,
+        second_species_ion_atom_concentration,
     )
 
     AuI_linepair_check = LinePairChecker().check_line_pairs(
         first_species_atomic_lines,
         first_species_integrals,
-        atom_concentration_data.temperature,
+        temperature,
     )
     AgI_linepair_check = LinePairChecker().check_line_pairs(
         second_species_atomic_lines,
         second_species_integrals,
-        atom_concentration_data.temperature,
+        temperature,
     )
 
-    print(
-        f"The number concentration ratio for {first_species_name}-{second_species_name}: {total_concentration:8.5f}"
+    logger.info(
+        f"The number concentration ratio for {first_species_atom_name}-{second_species_atom_name}: {total_concentration:8.5f}"
     )
-    print(f"The temperature is: {atom_concentration_data.temperature:6.3f} K")
-    print(f"{first_species_name} linepair deviations: {AuI_linepair_check}")
-    print(f"{second_species_name} linepair deviations: {AgI_linepair_check}")
-    print(spectrum_correction_data.baseline)
+    logger.info(f"The temperature is: {temperature:6.3f} K")
+    logger.info(f"{first_species_atom_name} linepair deviations: {AuI_linepair_check}")
+    logger.info(f"{second_species_atom_name} linepair deviations: {AgI_linepair_check}")
 
     plotter = Plotter()
     plotter.plot_original_spectrum(
         spectrum=spectrum, spectrum_correction_data=spectrum_correction_data
     )
 
-    plotter.plot_saha_boltzmann_line_pairs(
-        atom_concentration_data=atom_concentration_data
-    )
+    plotter.plot_saha_boltzmann_line_pairs(intensity_ratios_data=intensity_ratio_data)
 
     plotter.plot_baseline_corrected_spectrum_with_the_major_peaks(
         spectrum_correction_data=spectrum_correction_data,
