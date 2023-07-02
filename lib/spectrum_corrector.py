@@ -21,7 +21,7 @@ class SpectrumCorrector:
     ) -> SpectrumCorrectionData:
         wavelengths = spectrum[:, wavelength_column_index]
         intensities = spectrum[:, intensity_column_index]
-        baseline = self._calculate_baseline(spectrum, intensity_column_index)
+        baseline = self._calculate_baseline(intensities)
         corrected_intensities = intensities - baseline
 
         return SpectrumCorrectionData(
@@ -29,8 +29,8 @@ class SpectrumCorrector:
             baseline=baseline,
         )
 
-    def _calculate_baseline(self, spectrum, intensity_column_index):
-        L = len(spectrum[:, intensity_column_index])
+    def _calculate_baseline(self, intensities):
+        L = len(intensities)
 
         diag = np.ones(L - 2)
         D = sparse.spdiags([diag, -2 * diag, diag], [0, -1, -2], L, L - 2)
@@ -44,8 +44,8 @@ class SpectrumCorrector:
         count = 0
 
         while crit > 1e-5:
-            z = linalg.spsolve(W + H, W * spectrum[:, intensity_column_index])
-            d = spectrum[:, intensity_column_index] - z
+            z = linalg.spsolve(W + H, W * intensities)
+            d = intensities - z
             dn = d[d < 0]
 
             m = np.mean(dn)

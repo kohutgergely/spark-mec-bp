@@ -33,7 +33,7 @@ from nist.parsers import (
 )
 
 
-def kek():
+def app():
     first_species_target_peaks = np.array([312.278, 406.507, 479.26])
     second_species_target_peaks = np.array([338.29, 520.9078, 546.54])
 
@@ -175,3 +175,7 @@ def kek():
         xlim=[400, 410],
         ylim=[0, 200],
     )
+
+
+if __name__ == "__main__":
+    app()
