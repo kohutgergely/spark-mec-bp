@@ -1,8 +1,6 @@
 import numpy as np
 
-from matplotlib import pyplot as plt
-from scipy.signal import peak_prominences
-
+from plotting import Plotter
 from readers import ASCIISpectrumReader
 from lib import (
     PeakFinder,
@@ -38,9 +36,6 @@ from nist.parsers import (
 first_species_target_peaks = np.array([312.278, 406.507, 479.26])
 second_species_target_peaks = np.array([338.29, 520.9078, 546.54])
 
-### Baseline and peak finding###
-wl_start = 400  # lower limit for plots
-wl_end = 410  # upper limit for plots
 set_wlen = 40  # the wlen parameter for the prominence function
 set_height = 100
 first_species_name = "Au I"
@@ -166,65 +161,17 @@ print(f"The temperature is: {atom_concentration_data.temperature:6.3f} K")
 print(f"{first_species_name} linepair deviations: {AuI_linepair_check}")
 print(f"{second_species_name} linepair deviations: {AgI_linepair_check}")
 
+plotter = Plotter()
+plotter.plot_original_spectrum(
+    spectrum=spectrum, spectrum_correction_data=spectrum_correction_data
+)
 
-plt.plot(
-    atom_concentration_data.intensity_ratios[:, 0],
-    atom_concentration_data.intensity_ratios[:, 1],
-    "x",
-)
-plt.plot(
-    atom_concentration_data.intensity_ratios[:, 0],
-    atom_concentration_data.intensity_ratios[:, 0]
-    * atom_concentration_data.fitted_intensity_ratios[0]
-    + atom_concentration_data.fitted_intensity_ratios[1],
-)
-plt.xlabel("Difference of upper energy levels (cm-1)")
-plt.ylabel("log of line intensity ratios (a.u.)")
-plt.title("Saha-Boltzmann line-pair plot for Au I and Ag I lines")
-plt.figure()
+plotter.plot_saha_boltzmann_line_pairs(atom_concentration_data=atom_concentration_data)
 
-left = peak_prominences(
-    spectrum_correction_data.corrected_spectrum[:, 1], peak_indices, wlen=set_wlen
-)[
-    1
-]  # lower integration limit of each line
-right = peak_prominences(
-    spectrum_correction_data.corrected_spectrum[:, 1], peak_indices, wlen=set_wlen
-)[
-    2
-]  # upper integration limit of each line
-
-plt.plot(
-    spectrum_correction_data.corrected_spectrum[:, 0],
-    spectrum_correction_data.corrected_spectrum[:, 1],
+plotter.plot_baseline_corrected_spectrum_with_the_major_peaks(
+    spectrum_correction_data=spectrum_correction_data,
+    peak_indices=peak_indices,
+    wlen=set_wlen,
+    wl_start=400,  # lower limit for plots
+    wl_end=410,  # upper limit for plots
 )
-plt.plot(
-    spectrum_correction_data.corrected_spectrum[peak_indices, 0],
-    spectrum_correction_data.corrected_spectrum[peak_indices, 1],
-    "x",
-)
-plt.plot(
-    spectrum_correction_data.corrected_spectrum[left, 0],
-    spectrum_correction_data.corrected_spectrum[left, 1],
-    "o",
-)
-plt.plot(
-    spectrum_correction_data.corrected_spectrum[right, 0],
-    spectrum_correction_data.corrected_spectrum[right, 1],
-    "o",
-)
-plt.xlim([wl_start, wl_end])
-plt.ylim([-100, 10000])
-plt.xlabel("Wavelength (nm)")
-plt.ylabel("Intensity (a.u.)")
-plt.title("Baseline corrected spectrum with the major peaks")
-plt.figure()
-
-plt.plot(spectrum[:, 0], spectrum[:, 1])
-plt.plot(spectrum[:, 0], spectrum_correction_data.baseline)
-plt.xlim([310, 800])
-# plt.ylim([4.5, 5])
-plt.xlabel("Wavelength (nm)")
-plt.ylabel("Intensity (a.u.)")
-plt.title("Original spectrum and baseline")
-plt.figure()
