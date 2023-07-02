@@ -1,10 +1,5 @@
 import numpy as np
 
-from data_preparation.getters import (
-    PartitionFunctionDataGetter,
-    IonizationEnergyDataGetter,
-)
-
 m = 9.10938291e-28  # g
 k = 1.3807e-16  # cm2 g s-2 K-1
 h = 6.6261e-27  # cm2 g s-1

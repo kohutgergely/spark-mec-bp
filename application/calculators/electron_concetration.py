@@ -13,10 +13,10 @@ X = (2 * np.pi * m * k) / np.power(h, 2)  # constant in Saha-Boltzmann equation
 class ElectronConcentrationCalculator:
     def calculate(
         self,
-        temperature,
-        ionization_energy,
-        partition_function_atom,
-        partition_function_ion,
+        temperature: float,
+        ionization_energy: float,
+        partition_function_atom: float,
+        partition_function_ion: float,
     ):
         ion_neutral_atom_partition_function_ratio = (
             partition_function_ion / partition_function_atom

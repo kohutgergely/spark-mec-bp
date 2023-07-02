@@ -15,7 +15,7 @@ shell: build
 
 .PHONY: run
 run: build
-	${RUN_IN_DOCKER} -it ${DOCKER_IMAGE_NAME} python app.py
+	${RUN_IN_DOCKER} -it ${DOCKER_IMAGE_NAME} python entrypoint.py
 
 .PHONY: test
 test: build
