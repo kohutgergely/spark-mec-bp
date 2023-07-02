@@ -1,5 +1,4 @@
 import numpy as np
-from lib import PeakFinder
 from scipy.signal import peak_prominences
 from lmfit.models import PseudoVoigtModel
 
@@ -8,9 +7,7 @@ class VoigtIntegralCalculator:
     def __init__(self, prominance_window_length: int) -> None:
         self.prominance_wlen = prominance_window_length
 
-    def calculate_integrals(
-        self, spectrum, peak_index_table, target_wavelengths: np.array
-    ):
+    def calculate(self, spectrum, peak_index_table, target_wavelengths: np.array):
         wavelengths = spectrum[:, 0]
         intensities = spectrum[:, 1]
         peak_index_table_with_wavelengths = self._combine_peak_indices_with_wavelengths(

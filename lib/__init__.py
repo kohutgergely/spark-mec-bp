@@ -1,7 +1,3 @@
 from .peak_finder import PeakFinder
 from .spectrum_corrector import SpectrumCorrector
 from .line_pair_checker import LinePairChecker
-from .electron_concetration import ElectronConcentrationCalculator
-from .voigt_integrals import VoigtIntegralCalculator
-from .temperature_calculator import TemperatureCalculator
-from .intensity_ratio_calculator import IntensityRatiosCalculator
