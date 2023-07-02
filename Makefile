@@ -1,3 +1,4 @@
+MAKEFILE := $(firstword $(MAKEFILE_LIST))
 DOCKER_IMAGE_NAME=plasma-characterizer
 
 RUN_IN_DOCKER= \
