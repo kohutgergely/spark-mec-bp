@@ -24,3 +24,7 @@ test: build
 .PHONY: test-ci
 test-ci: build
 	${RUN_IN_DOCKER} ${DOCKER_IMAGE_NAME} pytest /app
+
+.PHONY: jupyter
+jupyter:  build
+	${RUN_IN_DOCKER} -p 80:8888 ${DOCKER_IMAGE_NAME} jupyter notebook --port 8888 --allow-root --no-browser --ip=0.0.0.0 --NotebookApp.token='' --NotebookApp.password=''

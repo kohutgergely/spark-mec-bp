@@ -34,8 +34,8 @@ class Plotter:
         spectrum_correction_data,
         peak_indices,
         wlen,
-        wl_start,
-        wl_end,
+        xlim,
+        ylim,
     ):
         left = peak_prominences(
             spectrum_correction_data.corrected_spectrum[:, 1],
@@ -71,8 +71,8 @@ class Plotter:
             spectrum_correction_data.corrected_spectrum[right, 1],
             "o",
         )
-        plt.xlim([wl_start, wl_end])
-        plt.ylim([-100, 10000])
+        plt.xlim(xlim)
+        plt.ylim(ylim)
         plt.xlabel("Wavelength (nm)")
         plt.ylabel("Intensity (a.u.)")
         plt.title("Baseline corrected spectrum with the major peaks")
