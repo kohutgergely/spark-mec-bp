@@ -1,4 +1,3 @@
 from .atom_concentration import AtomConcentraionCalculator
-from .electron_concetration import ElectronConcentrationCalculator
 from .ion_atom_concentration import IonAtomConcentraionCalculator
-from .integrals import IntegralsCalculator
+from .total_concentration import TotalConcentrationCalculator

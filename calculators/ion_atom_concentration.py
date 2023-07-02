@@ -1,17 +1,18 @@
 import numpy as np
+
 from data_preparation.getters import (
     PartitionFunctionDataGetter,
     IonizationEnergyDataGetter,
 )
 
-m = 9.10938291E-28  # g
-k = 1.3807E-16  # cm2 g s-2 K-1
-h = 6.6261E-27  # cm2 g s-1
+m = 9.10938291e-28  # g
+k = 1.3807e-16  # cm2 g s-2 K-1
+h = 6.6261e-27  # cm2 g s-1
 e = -1  # elementary charge
-c = 2.99792458E10  # cm/s
-p = 1E6  # g/s^2 m
+c = 2.99792458e10  # cm/s
+p = 1e6  # g/s^2 m
 
-X = (2*np.pi*m*k)/np.power(h, 2)  # constant in Saha-Boltzmann equation
+X = (2 * np.pi * m * k) / np.power(h, 2)  # constant in Saha-Boltzmann equation
 
 
 class IonAtomConcentraionCalculator:
@@ -31,19 +32,25 @@ class IonAtomConcentraionCalculator:
         partition_function_atom_name: str,
         partition_function_ion_name: str,
     ):
-        ionization_energy = self._ionization_energy_data_getter.get_data(
-            species_name)
-        ion_concentration = self._saha_boltzmann(electron_concentration,
-                                                 temperature, ionization_energy)
+        ionization_energy = self._ionization_energy_data_getter.get_data(species_name)
+        ion_concentration = self._saha_boltzmann(
+            electron_concentration, temperature, ionization_energy
+        )
 
         atom_partition_function = self._partition_function_data_getter.get_data(
-            partition_function_atom_name, temperature)
+            partition_function_atom_name, temperature
+        )
         ion_partition_function = self._partition_function_data_getter.get_data(
-            partition_function_ion_name, temperature)
+            partition_function_ion_name, temperature
+        )
 
-        return ion_concentration * (ion_partition_function/atom_partition_function)
+        return ion_concentration * (ion_partition_function / atom_partition_function)
 
     def _saha_boltzmann(self, electron_concentration, temperature, ionization_energy):
-        return 2*(1/electron_concentration)*np.power(X, 1.5)*np.power(temperature, 1.5) * \
-            np.exp(-(ionization_energy/(temperature*0.695028))
-                   )  # number concentration of argon ions
+        return (
+            2
+            * (1 / electron_concentration)
+            * np.power(X, 1.5)
+            * np.power(temperature, 1.5)
+            * np.exp(-(ionization_energy / (temperature * 0.695028)))
+        )  # number concentration of argon ions
