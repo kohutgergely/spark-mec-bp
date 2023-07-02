@@ -1,13 +1,11 @@
 import numpy as np
 from dataclasses import dataclass
 
-from data_preparation.spectrum_correction import SpectrumCorrector
-from data_preparation.spectrum_reader import SpectrumReader
-from data_preparation.peak_finder import PeakFinder
-from data_preparation.integral_calculator import IntegralCalculator
-from data_preparation.atomic_lies_data_preparator import AtomicLinesDataPreparator
-from nist_sdk.atomic_lines import AtomicLinesFetcher
-from parsers.atomic_lines import AtomicLinesParser
+from lib.peak_finder import PeakFinder
+from calculators.integrals import IntegralsCalculator
+from data_preparation.getters.atomic_lines_data_getter import AtomicLinesDataGetter
+from nist.fetchers import AtomicLinesFetcher
+from nist.parsers import AtomicLinesParser
 
 
 @dataclass
@@ -25,17 +23,17 @@ class CalculationDataPreparator:
         self.peak_finder = PeakFinder(
             required_height=config.peak_hight_for_integral_calculation
         )
-        self.integral_calculator = IntegralCalculator(
+        self.integral_calculator = IntegralsCalculator(
             peak_finder=self.peak_finder,
             prominance_window_length=config.prominance_window_length_for_integral_calculation
         )
-        self.atomic_lines_data_preparator = AtomicLinesDataPreparator(
+        self.atomic_lines_data_getter = AtomicLinesDataGetter(
             atomic_lines_fetcher=AtomicLinesFetcher(),
             atomic_lines_parser=AtomicLinesParser()
         )
 
     def prepare_calculation_data(self):
-        atomic_lines_data = self.atomic_lines_data_preparator.prepare_atomic_lines_data(
+        atomic_lines_data = self.atomic_lines_data_getter.get_data(
             self.config.species_name, target_peaks=self.config.species_target_peak_wavelengths)
         integrals = self.integral_calculator.calculate_integrals(
             self.config.spectrum, self.config.species_target_peak_wavelengths)
@@ -43,4 +41,4 @@ class CalculationDataPreparator:
         return self._combine_data(atomic_lines_data, integrals)
 
     def _combine_data(self, atomic_lines_data, integrals):
-        return np.concatenate((self.config.species_target_peak_wavelengths[:, np.newaxis], atomic_lines_data, integrals[:, np.newaxis]), axis=1)
+        return np.concatenate((atomic_lines_data, integrals[:, np.newaxis]), axis=1)
