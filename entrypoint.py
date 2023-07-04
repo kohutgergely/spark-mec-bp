@@ -53,15 +53,17 @@ if __name__ == "__main__":
     plotter = Plotter()
     line_pair_checker = LinePairChecker()
     config = ApplicationConfig(
-        spectrum_path="AuAg-Cu-Ar-2.0mm-100Hz-2s_gate500ns_g100_s500ns_N100_3.2mm.asc",
+        spectrum_path="application/tests/test_data/input_data.asc",
+        spectrum_wavelength_column_index=0,
+        spectrum_intensity_column_index=10,
         first_species_target_peaks=np.array([312.278, 406.507, 479.26]),
         first_species_atom_name="Au I",
         first_species_ion_name="Au II",
         second_species_target_peaks=np.array([338.29, 520.9078, 546.54]),
         second_species_atom_name="Ag I",
         second_species_ion_name="Ag II",
-        medium_species_atom_name="Ar I",
-        medium_species_ion_name="Ar II",
+        carrier_species_atom_name="Ar I",
+        carrier_species_ion_name="Ar II",
         prominence_window_length=40,
         peak_minimum_requred_height=100,
     )

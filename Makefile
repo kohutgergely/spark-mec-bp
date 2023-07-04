@@ -19,7 +19,7 @@ run: build
 
 .PHONY: test
 test: build
-	${RUN_IN_DOCKER} -it ${DOCKER_IMAGE_NAME} pytest /app
+	${RUN_IN_DOCKER} -it ${DOCKER_IMAGE_NAME} pytest -s /app
 
 .PHONY: test-ci
 test-ci: build
