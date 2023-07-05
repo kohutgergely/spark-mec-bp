@@ -1,5 +1,5 @@
 import pytest
-from nist.fetchers import AtomicLinesFetcher, AtomicLinesData
+from nist.fetchers import AtomicLinesFetcher
 from typing import Dict
 
 
@@ -89,7 +89,7 @@ def test_atomic_lines_fetcher_calls_response_validator_which_returns_false_and_r
     mock_validator.return_value.validate.return_value = ValueError("dummy_error")
 
     with mock_get() as response:
-        with pytest.raises(ValueError) as error:
+        with pytest.raises(ValueError):
             AtomicLinesFetcher().fetch("dummy_species", 0, 0)
 
     mock_validator.return_value.validate.assert_called_with(response.text)

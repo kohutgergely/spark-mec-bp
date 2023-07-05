@@ -18,7 +18,8 @@ def log_results(line_pair_checker: LinePairChecker, result: ApplicationResult):
     )
 
     logger.info(
-        f"The number concentration ratio for {config.first_species_atom_name}-{config.second_species_atom_name}: {result.total_concentration:8.5f}"
+        f"The number concentration ratio for \
+            {config.first_species_atom_name}-{config.second_species_atom_name}: {result.total_concentration:8.5f}"
     )
     logger.info(f"The temperature is: {result.temperature:6.3f} K")
     logger.info(

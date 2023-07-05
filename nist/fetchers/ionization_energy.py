@@ -16,7 +16,6 @@ class IonizationEnergyFetcher:
     output_format = 3
     order = 0
     atomic_number = "on"
-    spectrum_name = "on"
     ion_charge = "on"
     element_name = "on"
     isoelectronic_sequence = "on"
@@ -33,32 +32,32 @@ class IonizationEnergyFetcher:
         self.validator = ResponseErrorValidator()
 
     def fetch(
-            self,
-            spectrum: str,
+        self,
+        spectrum: str,
     ) -> IonizationEnergyData:
         logging.info(
-            f"Retrieving ionization energy from NIST database for the following query: {spectrum}")
+            f"Retrieving ionization energy from NIST database for the following query: {spectrum}"
+        )
         with requests.get(
-                url=self.url,
-                params={
-                    "spectra": spectrum,
-                    "units": self.units,
-                    "format": self.output_format,
-                    "order": self.order,
-                    "at_num_out": self.atomic_number,
-                    "sp_name_out": self.spectrum_name,
-                    "ion_charge_out": self.ion_charge,
-                    "el_name_out": self.element_name,
-                    "seq_out": self.isoelectronic_sequence,
-                    "shells_out": self.ground_state_electronic_shells,
-                    "conf_out": self.ground_state_configuration,
-                    "level_out": self.ground_state_level,
-                    "ion_conf_out": self.ionized_configuration,
-                    "unc_out": self.uncertainity,
-                    "sp_name_out": self.spectrum_name_output,
-                    "e_out": self.ionization_energy_output,
-                    "submit": self.submit
-                }
+            url=self.url,
+            params={
+                "spectra": spectrum,
+                "units": self.units,
+                "format": self.output_format,
+                "order": self.order,
+                "at_num_out": self.atomic_number,
+                "ion_charge_out": self.ion_charge,
+                "el_name_out": self.element_name,
+                "seq_out": self.isoelectronic_sequence,
+                "shells_out": self.ground_state_electronic_shells,
+                "conf_out": self.ground_state_configuration,
+                "level_out": self.ground_state_level,
+                "ion_conf_out": self.ionized_configuration,
+                "unc_out": self.uncertainity,
+                "sp_name_out": self.spectrum_name_output,
+                "e_out": self.ionization_energy_output,
+                "submit": self.submit,
+            },
         ) as response:
             self._validate_response(response)
             return IonizationEnergyData(data=response.text)

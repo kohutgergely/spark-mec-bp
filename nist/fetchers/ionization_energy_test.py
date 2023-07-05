@@ -74,7 +74,7 @@ def test_ionization_energies_fetcher_calls_response_validator_which_returns_fals
     mock_validator.return_value.validate.return_value = ValueError("dummy_error")
 
     with mock_get() as response:
-        with pytest.raises(ValueError) as error:
+        with pytest.raises(ValueError):
             IonizationEnergyFetcher().fetch(
                 "dummy_species",
             )

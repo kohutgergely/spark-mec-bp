@@ -12,7 +12,10 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Build image
-        run: make build
+        run: make build-test
 
       - name: Run Tests
         run: make test-ci
+
+      - name: Run Linting
+        run: make lint

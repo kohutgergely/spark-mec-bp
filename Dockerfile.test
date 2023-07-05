@@ -1,0 +1,10 @@
+ARG prod_docker_image
+FROM ${prod_docker_image}
+
+COPY test-requirements.txt .
+
+RUN pip install --no-cache-dir -r test-requirements.txt
+
+WORKDIR /app
+
+ENV PYTHONPATH=${PYTHONPATH}:/app
