@@ -55,7 +55,7 @@ class AtomicLinesFetcher:
             f"Retrieving atomic line information from NIST database for the following spectrum: {spectrum}")
         return self._request_data_from_nist(spectrum, lower_wavelength, upper_wavelength)
 
-    def _request_data_from_nist(self, spectrum: str, lower_wavelength: int, upper_wavelength: int) -> str:
+    def _request_data_from_nist(self, spectrum: str, lower_wavelength: int, upper_wavelength: int) -> AtomicLinesData:
         with requests.get(
             url=self.url,
             params={

@@ -1,28 +1,30 @@
+import numpy as np
 from matplotlib import pyplot as plt
 from scipy.signal import peak_prominences
+from typing import List
 
 
 class Plotter:
-    def plot_original_spectrum(self, spectrum, spectrum_correction_data):
+    def plot_original_spectrum(self, spectrum: np.ndarray, baseline: np.ndarray) -> None:
         plt.plot(spectrum[:, 0], spectrum[:, 1])
-        plt.plot(spectrum[:, 0], spectrum_correction_data.baseline)
+        plt.plot(spectrum[:, 0], baseline)
         plt.xlim([310, 800])
         plt.xlabel("Wavelength (nm)")
         plt.ylabel("Intensity (a.u.)")
         plt.title("Original spectrum and baseline")
         plt.figure()
 
-    def plot_saha_boltzmann_line_pairs(self, intensity_ratios_data):
+    def plot_saha_boltzmann_line_pairs(self, intensity_ratios: np.ndarray, fitted_intensity_ratios: np.ndarray):
         plt.plot(
-            intensity_ratios_data.intensity_ratios[:, 0],
-            intensity_ratios_data.intensity_ratios[:, 1],
+            intensity_ratios[:, 0],
+            intensity_ratios[:, 1],
             "x",
         )
         plt.plot(
-            intensity_ratios_data.intensity_ratios[:, 0],
-            intensity_ratios_data.intensity_ratios[:, 0]
-            * intensity_ratios_data.fitted_intensity_ratios[0]
-            + intensity_ratios_data.fitted_intensity_ratios[1],
+            intensity_ratios[:, 0],
+            intensity_ratios[:, 0]
+            * fitted_intensity_ratios[0]
+            + fitted_intensity_ratios[1],
         )
         plt.xlabel("Difference of upper energy levels (cm-1)")
         plt.ylabel("log of line intensity ratios (a.u.)")
@@ -31,40 +33,40 @@ class Plotter:
 
     def plot_baseline_corrected_spectrum_with_the_major_peaks(
         self,
-        spectrum_correction_data,
-        peak_indices,
-        wlen,
-        xlim,
-        ylim,
+        corrected_spectrum: np.ndarray,
+        peak_indices: np.ndarray,
+        wlen: int,
+        xlim: List[int],
+        ylim: List[int],
     ):
         left = peak_prominences(
-            spectrum_correction_data.corrected_spectrum[:, 1],
+            corrected_spectrum[:, 1],
             peak_indices,
             wlen=wlen,
         )[1]
         right = peak_prominences(
-            spectrum_correction_data.corrected_spectrum[:, 1],
+            corrected_spectrum[:, 1],
             peak_indices,
             wlen=wlen,
         )[2]
 
         plt.plot(
-            spectrum_correction_data.corrected_spectrum[:, 0],
-            spectrum_correction_data.corrected_spectrum[:, 1],
+            corrected_spectrum[:, 0],
+            corrected_spectrum[:, 1],
         )
         plt.plot(
-            spectrum_correction_data.corrected_spectrum[peak_indices, 0],
-            spectrum_correction_data.corrected_spectrum[peak_indices, 1],
+            corrected_spectrum[peak_indices, 0],
+            corrected_spectrum[peak_indices, 1],
             "x",
         )
         plt.plot(
-            spectrum_correction_data.corrected_spectrum[left, 0],
-            spectrum_correction_data.corrected_spectrum[left, 1],
+            corrected_spectrum[left, 0],
+            corrected_spectrum[left, 1],
             "o",
         )
         plt.plot(
-            spectrum_correction_data.corrected_spectrum[right, 0],
-            spectrum_correction_data.corrected_spectrum[right, 1],
+            corrected_spectrum[right, 0],
+            corrected_spectrum[right, 1],
             "o",
         )
         plt.xlim(xlim)

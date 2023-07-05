@@ -13,7 +13,7 @@ class PartitionFunctionDataGetter:
         self.atomic_levels_fetcher = atomic_levels_fetcher
         self.atomic_levels_parser = atomic_levels_parser
 
-    def get_data(self, species_name: str, temperature: float):
+    def get_data(self, species_name: str, temperature: float) -> float:
         atomic_levels_data = self.atomic_levels_fetcher.fetch(
             species_name, temperature * KELVIN_TO_ELECTRONVOLT_CONVERSION_FACTOR
         )

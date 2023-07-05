@@ -18,7 +18,7 @@ class IonAtomConcentraionCalculator:
         ionization_energy: float,
         partition_function_atom: float,
         partition_function_ion: float,
-    ):
+    ) -> float:
         ion_concentration = self._saha_boltzmann(
             electron_concentration, temperature, ionization_energy
         )

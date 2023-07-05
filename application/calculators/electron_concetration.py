@@ -17,7 +17,7 @@ class ElectronConcentrationCalculator:
         ionization_energy: float,
         partition_function_atom: float,
         partition_function_ion: float,
-    ):
+    ) -> float:
         ion_neutral_atom_partition_function_ratio = (
             partition_function_ion / partition_function_atom
         )

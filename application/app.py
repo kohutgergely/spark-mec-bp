@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from application.config import ApplicationConfig
 from application.readers import ASCIISpectrumReader
 from application.lib import PeakFinder, SpectrumCorrector
 from application.calculators import (
@@ -31,6 +30,23 @@ from nist.parsers import (
     AtomicLevelsParser,
     IonizationEnergyParser,
 )
+
+
+@dataclass
+class ApplicationConfig:
+    spectrum_path: str
+    spectrum_wavelength_column_index: int
+    spectrum_intensity_column_index: int
+    first_species_target_peaks: np.ndarray
+    second_species_target_peaks: np.ndarray
+    first_species_atom_name: str
+    first_species_ion_name: str
+    second_species_atom_name: str
+    second_species_ion_name: str
+    carrier_species_atom_name: str
+    carrier_species_ion_name: str
+    prominence_window_length: int
+    peak_minimum_requred_height: int
 
 
 @dataclass
@@ -72,8 +88,8 @@ class Application:
 
     @dataclass
     class _IntegralsData:
-        first_species: float
-        second_species: float
+        first_species: np.ndarray
+        second_species: np.ndarray
 
     @dataclass
     class _IonAtomConcentrationData:

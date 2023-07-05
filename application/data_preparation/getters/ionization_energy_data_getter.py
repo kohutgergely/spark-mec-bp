@@ -11,7 +11,7 @@ class IonizationEnergyDataGetter:
         self.ionization_energy_fetcher = ionization_energy_fetcher
         self.ionization_energy_parser = ionization_energy_parser
 
-    def get_data(self, species_name: str):
+    def get_data(self, species_name: str) -> float:
         ionziation_energy_data = self.ionization_energy_fetcher.fetch(species_name)
         parsed_ionization_energy_data = (
             self.ionization_energy_parser.parse_ionization_energy(

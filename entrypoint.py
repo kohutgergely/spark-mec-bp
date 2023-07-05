@@ -33,15 +33,16 @@ def log_results(line_pair_checker: LinePairChecker, result: ApplicationResult):
 def plot_figures(plotter: Plotter, result: ApplicationResult):
     plotter.plot_original_spectrum(
         spectrum=result.original_spectrum,
-        spectrum_correction_data=result.spectrum_correction_data,
+        baseline=result.baseline,
     )
 
     plotter.plot_saha_boltzmann_line_pairs(
-        intensity_ratios_data=result.intensity_ratio_data
+        intensity_ratios=result.intensity_ratios,
+        fitted_intensity_ratios=result.fitted_intensity_ratios
     )
 
     plotter.plot_baseline_corrected_spectrum_with_the_major_peaks(
-        spectrum_correction_data=result.spectrum_correction_data,
+        corrected_spectrum=result.corrected_spectrum,
         peak_indices=result.peak_indices,
         wlen=config.prominence_window_length,
         xlim=[400, 410],

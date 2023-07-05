@@ -17,7 +17,7 @@ class SpectrumCorrectionData:
 
 class SpectrumCorrector:
     def correct_spectrum(
-        self, spectrum: np.ndarray, wavelength_column_index=0, intensity_column_index=1
+        self, spectrum: np.ndarray, wavelength_column_index: int = 0, intensity_column_index: int = 1
     ) -> SpectrumCorrectionData:
         wavelengths = spectrum[:, wavelength_column_index]
         intensities = spectrum[:, intensity_column_index]

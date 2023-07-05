@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from typing import Dict, Any, Optional
+from typing import Optional
 
 
 class ValidationError(Exception):
@@ -18,7 +18,7 @@ class ResponseErrorValidator:
 
         return None
 
-    def _create_validation_error(self, message: str) -> Dict[str, Any]:
+    def _create_validation_error(self, message: str) -> ValidationError:
         return ValidationError(message)
 
     def _get_error_message_from_response_if_exists(self, response: str) -> str:

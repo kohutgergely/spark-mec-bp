@@ -15,7 +15,7 @@ class AtomicLinesDataGetter:
         self.atomic_lines_fetcher = atomic_lines_fetcher
         self.atomic_lines_parser = atomic_lines_parser
 
-    def get_data(self, species_name: str, target_peaks: np.ndarray):
+    def get_data(self, species_name: str, target_peaks: np.ndarray) -> np.ndarray:
         lower_wavelength, upper_wavelength = self._get_wavelength_range(target_peaks)
         atomic_lines_data = self._fetch_atomic_lines_data_from_nist(
             species_name, lower_wavelength, upper_wavelength

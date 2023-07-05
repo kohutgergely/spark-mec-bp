@@ -2,7 +2,7 @@ import numpy as np
 
 
 class LinePairChecker:
-    def check_line_pairs(self, atomic_lines, integrals, temperature):
+    def check_line_pairs(self, atomic_lines: np.ndarray, integrals: np.ndarray, temperature: float) -> np.ndarray:
         intratio = integrals / integrals[:, np.newaxis]
         dataratio = np.divide(
             (
