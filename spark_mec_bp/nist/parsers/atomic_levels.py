@@ -1,4 +1,4 @@
-from nist.fetchers import AtomicLevelsData
+from spark_mec_bp.nist.fetchers import AtomicLevelsData
 import pandas as pd
 from io import StringIO
 

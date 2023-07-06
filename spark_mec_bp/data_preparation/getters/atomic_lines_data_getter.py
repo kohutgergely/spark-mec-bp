@@ -1,6 +1,6 @@
 import numpy as np
-from nist.fetchers import AtomicLinesFetcher
-from nist.parsers import AtomicLinesParser
+from spark_mec_bp.nist.fetchers import AtomicLinesFetcher
+from spark_mec_bp.nist.parsers import AtomicLinesParser
 
 TARGET_COLUMNS = ["obs_wl_air(nm)", "Aki(s^-1)", "g_k", "Ek(cm-1)"]
 NOT_NA_FILTER_COLUMN = "Aki(s^-1)"

@@ -1,7 +1,5 @@
-from nist.validators import ResponseErrorValidator
+from spark_mec_bp.nist.validators import ResponseErrorValidator
 from dataclasses import dataclass
-
-import logging
 import requests
 
 
@@ -35,9 +33,6 @@ class IonizationEnergyFetcher:
         self,
         spectrum: str,
     ) -> IonizationEnergyData:
-        logging.info(
-            f"Retrieving ionization energy from NIST database for the following query: {spectrum}"
-        )
         with requests.get(
             url=self.url,
             params={

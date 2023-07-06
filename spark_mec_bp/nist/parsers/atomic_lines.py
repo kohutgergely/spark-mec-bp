@@ -1,4 +1,4 @@
-from nist.fetchers import AtomicLinesData
+from spark_mec_bp.nist.fetchers import AtomicLinesData
 import pandas as pd
 from io import StringIO
 

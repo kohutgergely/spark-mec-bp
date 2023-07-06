@@ -1,6 +1,5 @@
-from nist.validators import ResponseErrorValidator
+from spark_mec_bp.nist.validators import ResponseErrorValidator
 from dataclasses import dataclass
-import logging
 import requests
 
 
@@ -51,8 +50,6 @@ class AtomicLinesFetcher:
             lower_wavelength: int,
             upper_wavelength: int
     ) -> AtomicLinesData:
-        logging.info(
-            f"Retrieving atomic line information from NIST database for the following spectrum: {spectrum}")
         return self._request_data_from_nist(spectrum, lower_wavelength, upper_wavelength)
 
     def _request_data_from_nist(self, spectrum: str, lower_wavelength: int, upper_wavelength: int) -> AtomicLinesData:

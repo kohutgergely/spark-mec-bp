@@ -1,0 +1,29 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "spark_mec_bp"
+version = "0.0.7"
+description = "Spark mec bp"
+authors = ["Gergely Kohut <kohut.gergely@gmail.com>", "Attila Kohut <akohut@titan.physx.u-szeged.hu>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+requests = "*"
+beautifulsoup4 = "*"
+pandas = "*"
+numpy = "*"
+scipy = "*"
+matplotlib = "*"
+lmfit = "*"
+
+[tool.poetry.metadata]
+classifiers = [
+    "License :: BSD License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]

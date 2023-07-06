@@ -1,5 +1,5 @@
-from nist.fetchers import IonizationEnergyFetcher
-from nist.parsers import IonizationEnergyParser
+from spark_mec_bp.nist.fetchers import IonizationEnergyFetcher
+from spark_mec_bp.nist.parsers import IonizationEnergyParser
 
 
 class IonizationEnergyDataGetter:

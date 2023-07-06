@@ -1,4 +1,4 @@
-from nist.fetchers import IonizationEnergyData
+from spark_mec_bp.nist.fetchers import IonizationEnergyData
 import pandas as pd
 from io import StringIO
 

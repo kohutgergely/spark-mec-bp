@@ -1,8 +1,7 @@
 import numpy as np
-from application import Application, ApplicationResult, ApplicationConfig
-from application.logger import Logger
-from application.plotting import Plotter
-from application.lib import LinePairChecker
+from spark_mec_bp import Application, ApplicationResult, ApplicationConfig
+from spark_mec_bp.plotting import Plotter
+from spark_mec_bp.lib import LinePairChecker
 
 
 def log_results(line_pair_checker: LinePairChecker, result: ApplicationResult):
@@ -17,15 +16,15 @@ def log_results(line_pair_checker: LinePairChecker, result: ApplicationResult):
         result.temperature,
     )
 
-    logger.info(
+    print(
         f"The number concentration ratio for \
             {config.first_species_atom_name}-{config.second_species_atom_name}: {result.total_concentration:8.5f}"
     )
-    logger.info(f"The temperature is: {result.temperature:6.3f} K")
-    logger.info(
+    print(f"The temperature is: {result.temperature:6.3f} K")
+    print(
         f"{config.first_species_atom_name} linepair deviations: {AuI_linepair_check}"
     )
-    logger.info(
+    print(
         f"{config.second_species_atom_name} linepair deviations: {AgI_linepair_check}"
     )
 
@@ -51,11 +50,10 @@ def plot_figures(plotter: Plotter, result: ApplicationResult):
 
 
 if __name__ == "__main__":
-    logger = Logger().new()
     plotter = Plotter()
     line_pair_checker = LinePairChecker()
     config = ApplicationConfig(
-        spectrum_path="application/tests/test_data/input_data.asc",
+        spectrum_path="spark_mec_bp/tests/test_data/input_data.asc",
         spectrum_wavelength_column_index=0,
         spectrum_intensity_column_index=10,
         first_species_target_peaks=np.array([312.278, 406.507, 479.26]),

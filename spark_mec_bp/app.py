@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-
 import numpy as np
 
-from application.readers import ASCIISpectrumReader
-from application.lib import PeakFinder, SpectrumCorrector
-from application.calculators import (
+from spark_mec_bp.readers import ASCIISpectrumReader
+from spark_mec_bp.lib import PeakFinder, SpectrumCorrector
+from spark_mec_bp.logger import Logger
+from spark_mec_bp.calculators import (
     AtomConcentraionCalculator,
     IonAtomConcentraionCalculator,
     TotalConcentrationCalculator,
@@ -13,19 +13,19 @@ from application.calculators import (
     IntensityRatiosCalculator,
     TemperatureCalculator,
 )
-from application.data_preparation.getters import (
+from spark_mec_bp.data_preparation.getters import (
     PartitionFunctionDataGetter,
     IonizationEnergyDataGetter,
     AtomicLinesDataGetter,
 )
 
-from nist.fetchers import (
+from spark_mec_bp.nist.fetchers import (
     AtomicLinesFetcher,
     AtomicLevelsFetcher,
     IonizationEnergyFetcher,
 )
 
-from nist.parsers import (
+from spark_mec_bp.nist.parsers import (
     AtomicLinesParser,
     AtomicLevelsParser,
     IonizationEnergyParser,
@@ -98,6 +98,7 @@ class Application:
 
     def __init__(self, config: ApplicationConfig):
         self.config = config
+        self.logger = Logger().new()
         self.file_reader = ASCIISpectrumReader()
         self.atomic_lines_getter = AtomicLinesDataGetter(
             atomic_lines_fetcher=AtomicLinesFetcher(),
@@ -168,11 +169,15 @@ class Application:
         )
 
     def _read_spectrum(self):
+        self.logger.info("Loading input spectrum")
+
         return self.file_reader.read_spectrum_to_numpy(
             file_path=self.config.spectrum_path
         )
 
     def _correct_spectrum(self, spectrum):
+        self.logger.info("Baseline correcting input spectrum")
+
         return self.spectrum_corrector.correct_spectrum(
             spectrum=spectrum,
             wavelength_column_index=self.config.spectrum_wavelength_column_index,
@@ -180,15 +185,23 @@ class Application:
         )
 
     def _find_peaks(self, spectrum_correction_data):
+        self.logger.info("Finding spectrum peaks")
+
         return self.peak_finder.find_peak_indices(
             spectrum_correction_data.corrected_spectrum[:, 1]
         )
 
     def _get_atomic_lines(self) -> _NISTAtomicLinesData:
+        self.logger.info(
+            f"Retrieving partition function from NIST database for {self.config.first_species_atom_name}"
+        )
         first_species = self.atomic_lines_getter.get_data(
             self.config.first_species_atom_name, self.config.first_species_target_peaks
         )
 
+        self.logger.info(
+            f"Retrieving partition function from NIST database for {self.config.second_species_atom_name}"
+        )
         second_species = self.atomic_lines_getter.get_data(
             self.config.second_species_atom_name,
             self.config.second_species_target_peaks,
@@ -202,6 +215,8 @@ class Application:
     def _caluclate_integrals(
         self, spectrum_correction_data, peak_indices
     ) -> _IntegralsData:
+        self.logger.info("Calculating integrals")
+
         first_species = self.integral_calculator.calculate(
             spectrum_correction_data.corrected_spectrum,
             peak_indices,
@@ -217,6 +232,8 @@ class Application:
         return self._IntegralsData(first_species, second_species)
 
     def _calculate_intensity_ratios(self, atomic_lines, integrals):
+        self.logger.info("Calculating intensity ratios")
+
         return self.intensity_ratios_calculator.calculate(
             first_species_atomic_lines=atomic_lines.first_species,
             first_species_integrals=integrals.first_species,
@@ -225,6 +242,8 @@ class Application:
         )
 
     def _calculate_temperature(self, intensity_ratio_data):
+        self.logger.info("Calculating temperature")
+
         return self.temperature_calculatior.calculate(
             intensity_ratio_data.fitted_intensity_ratios
         )
@@ -232,30 +251,48 @@ class Application:
     def _get_partition_functions_from_nist(
         self, temperature
     ) -> _NISTPartitionFunctionData:
+        self.logger.info(
+            f"Retrieving partition function from NIST database for {self.config.first_species_atom_name}"
+        )
         first_species_atom = self.partition_function_getter.get_data(
             species_name=self.config.first_species_atom_name,
             temperature=temperature,
         )
 
+        self.logger.info(
+            f"Retrieving partition function from NIST database for {self.config.first_species_ion_name}"
+        )
         first_species_ion = self.partition_function_getter.get_data(
             species_name=self.config.first_species_ion_name, temperature=temperature
         )
 
+        self.logger.info(
+            f"Retrieving partition function from NIST database for {self.config.second_species_atom_name}"
+        )
         second_species_atom = self.partition_function_getter.get_data(
             species_name=self.config.second_species_atom_name,
             temperature=temperature,
         )
 
+        self.logger.info(
+            f"Retrieving partition function from NIST database for {self.config.second_species_ion_name}"
+        )
         second_species_ion = self.partition_function_getter.get_data(
             species_name=self.config.second_species_ion_name,
             temperature=temperature,
         )
 
+        self.logger.info(
+            f"Retrieving partition function from NIST database for {self.config.carrier_species_atom_name}"
+        )
         carrier_species_atom = self.partition_function_getter.get_data(
             species_name=self.config.carrier_species_atom_name,
             temperature=temperature,
         )
 
+        self.logger.info(
+            f"Retrieving partition function from NIST database for {self.config.carrier_species_ion_name}"
+        )
         carrier_species_ion = self.partition_function_getter.get_data(
             species_name=self.config.carrier_species_ion_name,
             temperature=temperature,
@@ -271,11 +308,22 @@ class Application:
         )
 
     def _get_ionization_energies_from_nist(self):
+        self.logger.info(
+            f"Retrieving ionization_energy from NIST database for {self.config.first_species_atom_name}"
+        )
         first_species = self.ionization_energy_getter.get_data(
             self.config.first_species_atom_name
         )
+
+        self.logger.info(
+            f"Retrieving ionization_energy from NIST database for {self.config.second_species_atom_name}"
+        )
         second_species = self.ionization_energy_getter.get_data(
             self.config.second_species_atom_name
+        )
+
+        self.logger.info(
+            f"Retrieving ionization_energy from NIST database for {self.config.carrier_species_atom_name}"
         )
         carrier_species = self.ionization_energy_getter.get_data(
             self.config.carrier_species_atom_name
@@ -288,6 +336,8 @@ class Application:
         )
 
     def _calculate_atom_concentration(self, intensity_ratio_data, partition_functions):
+        self.logger.info("Calculating atom concentration for species")
+
         return self.atom_concentration_calculatior.calculate(
             fitted_ratios=intensity_ratio_data.fitted_intensity_ratios,
             first_species_atom_partition_function=partition_functions.first_species_atom,
@@ -297,6 +347,8 @@ class Application:
     def _calculate_electron_concentration(
         self, temperature, partition_functions, ionization_energies
     ):
+        self.logger.info("Estimating electron concentration")
+
         return self.electron_concentration_calculation.calculate(
             temperature=temperature,
             ionization_energy=ionization_energies.carrier_species,
@@ -311,6 +363,8 @@ class Application:
         ionization_energies,
         electron_concentration,
     ) -> _IonAtomConcentrationData:
+        self.logger.info("Calculating ion-atom concentration")
+
         first_species = self.ion_atom_concentration_calculator.calculate(
             electron_concentration=electron_concentration,
             temperature=temperature,
@@ -335,6 +389,8 @@ class Application:
     def _calculate_total_concentration(
         self, atom_concentration, ion_atom_concentrations
     ):
+        self.logger.info("Calculating total concentration")
+
         return self.total_concentration_calculator.calculate(
             atom_concentration,
             ion_atom_concentrations.first_species,

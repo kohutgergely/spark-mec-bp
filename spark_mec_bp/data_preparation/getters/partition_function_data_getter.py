@@ -1,5 +1,5 @@
-from nist.fetchers import AtomicLevelsFetcher
-from nist.parsers import AtomicLevelsParser
+from spark_mec_bp.nist.fetchers import AtomicLevelsFetcher
+from spark_mec_bp.nist.parsers import AtomicLevelsParser
 
 KELVIN_TO_ELECTRONVOLT_CONVERSION_FACTOR = 8.61732814974493e-05
 

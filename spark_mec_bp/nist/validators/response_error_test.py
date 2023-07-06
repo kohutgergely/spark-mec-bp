@@ -1,5 +1,5 @@
 import pytest
-from nist.validators.response_error import ResponseErrorValidator, ValidationError
+from spark_mec_bp.nist.validators.response_error import ResponseErrorValidator, ValidationError
 
 
 @pytest.fixture()

@@ -1,6 +1,5 @@
-from nist.validators import ResponseErrorValidator
+from spark_mec_bp.nist.validators import ResponseErrorValidator
 from dataclasses import dataclass
-import logging
 import requests
 
 
@@ -35,8 +34,6 @@ class AtomicLevelsFetcher:
             spectrum: str,
             temperature: float
     ) -> AtomicLevelsData:
-        logging.info(
-            f"Retrieving atomic level information from NIST database for the following spectrum: {spectrum}")
         return self._request_data_from_nist(spectrum, temperature)
 
     def _request_data_from_nist(self, spectrum: str, temperature: float) -> AtomicLevelsData:

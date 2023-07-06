@@ -1,5 +1,5 @@
 import pytest
-from nist.fetchers import AtomicLinesFetcher
+from spark_mec_bp.nist.fetchers import AtomicLinesFetcher
 from typing import Dict
 
 
@@ -49,7 +49,7 @@ def test_atomic_lines_fetcher_get_request_is_called_with_valid_parameters(
     species = "dummy_species"
     lower_wavelength = 200
     upper_wavelength = 400
-    mock_get = mocker.patch("nist.fetchers.atomic_lines.requests.get")
+    mock_get = mocker.patch("spark_mec_bp.nist.fetchers.atomic_lines.requests.get")
 
     expected_params = {
         "spectra": species,
@@ -73,7 +73,7 @@ def test_atomic_lines_fetcher_get_request_is_called_with_valid_parameters(
 def test_atomic_lines_fetcher_response_raise_for_status_is_called(
     mocker,
 ):
-    mock_get = mocker.patch("nist.fetchers.atomic_lines.requests.get")
+    mock_get = mocker.patch("spark_mec_bp.nist.fetchers.atomic_lines.requests.get")
     with mock_get() as response:
         response.raise_for_status.side_effect = Exception()
 
@@ -84,8 +84,8 @@ def test_atomic_lines_fetcher_response_raise_for_status_is_called(
 def test_atomic_lines_fetcher_calls_response_validator_which_returns_false_and_raises_exception(
     mocker,
 ):
-    mock_get = mocker.patch("nist.fetchers.atomic_lines.requests.get")
-    mock_validator = mocker.patch("nist.fetchers.atomic_lines.ResponseErrorValidator")
+    mock_get = mocker.patch("spark_mec_bp.nist.fetchers.atomic_lines.requests.get")
+    mock_validator = mocker.patch("spark_mec_bp.nist.fetchers.atomic_lines.ResponseErrorValidator")
     mock_validator.return_value.validate.return_value = ValueError("dummy_error")
 
     with mock_get() as response:
