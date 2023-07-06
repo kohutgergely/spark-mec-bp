@@ -45,7 +45,7 @@ def plot_figures(plotter: Plotter, result: ApplicationResult):
         peak_indices=result.peak_indices,
         wlen=config.prominence_window_length,
         xlim=[400, 410],
-        ylim=[0, 200],
+        ylim=[0, 0.01],
     )
 
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     config = ApplicationConfig(
         spectrum_path="spark_mec_bp/tests/test_data/input_data.asc",
         spectrum_wavelength_column_index=0,
-        spectrum_intensity_column_index=10,
+        spectrum_intensity_column_index=5,
         first_species_target_peaks=np.array([312.278, 406.507, 479.26]),
         first_species_atom_name="Au I",
         first_species_ion_name="Au II",
@@ -64,8 +64,8 @@ if __name__ == "__main__":
         second_species_ion_name="Ag II",
         carrier_species_atom_name="Ar I",
         carrier_species_ion_name="Ar II",
-        prominence_window_length=40,
-        peak_minimum_requred_height=100,
+        prominence_window_length=60,
+        peak_minimum_requred_height=0.001,
     )
     app = Application(config)
 
