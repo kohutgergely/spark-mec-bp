@@ -33,6 +33,7 @@ def plot_figures(plotter: Plotter, result: ApplicationResult):
     plotter.plot_original_spectrum(
         spectrum=result.original_spectrum,
         baseline=result.baseline,
+        spectrum_intensity_column_index=config.spectrum_intensity_column_index
     )
 
     plotter.plot_saha_boltzmann_line_pairs(

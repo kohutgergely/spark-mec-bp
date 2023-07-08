@@ -5,8 +5,8 @@ from typing import List
 
 
 class Plotter:
-    def plot_original_spectrum(self, spectrum: np.ndarray, baseline: np.ndarray) -> None:
-        plt.plot(spectrum[:, 0], spectrum[:, 1])
+    def plot_original_spectrum(self, spectrum: np.ndarray, baseline: np.ndarray, spectrum_intensity_column_index: int) -> None:
+        plt.plot(spectrum[:, 0], spectrum[:, spectrum_intensity_column_index])
         plt.plot(spectrum[:, 0], baseline)
         plt.xlim([310, 800])
         plt.xlabel("Wavelength (nm)")
