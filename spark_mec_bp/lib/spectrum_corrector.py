@@ -15,7 +15,17 @@ class SpectrumCorrectionData:
     baseline: np.ndarray
 
 
+@dataclass
+class SpectrumCorrectorConfig:
+    iteration_limit: int = 50
+    ratio: float = 1e-5
+    lam: int = 1000000
+
+
 class SpectrumCorrector:
+    def __init__(self, config: SpectrumCorrectorConfig) -> None:
+        self.config = config
+
     def correct_spectrum(
         self, spectrum: np.ndarray, wavelength_column_index: int = 0, intensity_column_index: int = 1
     ) -> SpectrumCorrectionData:
@@ -35,7 +45,7 @@ class SpectrumCorrector:
         diag = np.ones(L - 2)
         D = sparse.spdiags([diag, -2 * diag, diag], [0, -1, -2], L, L - 2)
 
-        H = 1000000 * D.dot(D.T)
+        H = self.config.lam * D.dot(D.T)
 
         w = np.ones(L)
         W = sparse.spdiags(w, 0, L, L)
@@ -43,7 +53,7 @@ class SpectrumCorrector:
         crit = 1
         count = 0
 
-        while crit > 1e-5:
+        while crit > self.config.ratio:
             z = linalg.spsolve(W + H, W * intensities)
             d = intensities - z
             dn = d[d < 0]
@@ -60,7 +70,7 @@ class SpectrumCorrector:
 
             count += 1
 
-            if count > 50:
+            if count > self.config.iteration_limit:
                 break
 
         return z

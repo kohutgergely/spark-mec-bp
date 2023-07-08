@@ -1,12 +1,19 @@
 from spark_mec_bp.application import models
 from spark_mec_bp.readers import ASCIISpectrumReader
-from spark_mec_bp.lib import PeakFinder, SpectrumCorrector
+from spark_mec_bp.lib import (
+    PeakFinder,
+    PeakFinderConfig,
+    SpectrumCorrector,
+    SpectrumCorrectorConfig,
+    )
+
 from spark_mec_bp.logger import Logger
 from spark_mec_bp.calculators import (
     AtomConcentraionCalculator,
     IonAtomConcentraionCalculator,
     TotalConcentrationCalculator,
     VoigtIntegralCalculator,
+    VoigtIntegralCalculatorConfig,
     ElectronConcentrationCalculator,
     IntensityRatiosCalculator,
     TemperatureCalculator,
@@ -49,11 +56,19 @@ class App:
         )
 
         self.peak_finder = PeakFinder(
-            required_height=self.config.peak_minimum_requred_height
+            PeakFinderConfig(self.config.peak_finding.minimum_requred_height)
         )
-        self.spectrum_corrector = SpectrumCorrector()
+        self.spectrum_corrector = SpectrumCorrector(
+            SpectrumCorrectorConfig(
+                iteration_limit=self.config.spectrum_correction.iteration_limit,
+                ratio=self.config.spectrum_correction.ratio,
+                lam=self.config.spectrum_correction.lam,
+            )
+        )
         self.integral_calculator = VoigtIntegralCalculator(
-            prominance_window_length=self.config.prominence_window_length
+            VoigtIntegralCalculatorConfig(
+                prominance_window_length=self.config.voigt_integration.prominence_window_length
+            )
         )
         self.intensity_ratios_calculator = IntensityRatiosCalculator()
         self.electron_concentration_calculation = ElectronConcentrationCalculator()
@@ -107,7 +122,7 @@ class App:
         self.logger.info("Loading input spectrum")
 
         return self.file_reader.read_spectrum_to_numpy(
-            file_path=self.config.spectrum_path
+            file_path=self.config.spectrum.file_path
         )
 
     def _correct_spectrum(self, spectrum):
@@ -115,8 +130,8 @@ class App:
 
         return self.spectrum_corrector.correct_spectrum(
             spectrum=spectrum,
-            wavelength_column_index=self.config.spectrum_wavelength_column_index,
-            intensity_column_index=self.config.spectrum_intensity_column_index,
+            wavelength_column_index=self.config.spectrum.wavelength_column_index,
+            intensity_column_index=self.config.spectrum.intensity_column_index,
         )
 
     def _find_peaks(self, spectrum_correction_data):
@@ -128,18 +143,18 @@ class App:
 
     def _get_atomic_lines(self) -> models._NISTAtomicLinesData:
         self.logger.info(
-            f"Retrieving partition function from NIST database for {self.config.first_species_atom_name}"
+            f"Retrieving partition function from NIST database for {self.config.first_species.atom_name}"
         )
         first_species = self.atomic_lines_getter.get_data(
-            self.config.first_species_atom_name, self.config.first_species_target_peaks
+            self.config.first_species.atom_name, self.config.first_species.target_peaks
         )
 
         self.logger.info(
-            f"Retrieving partition function from NIST database for {self.config.second_species_atom_name}"
+            f"Retrieving partition function from NIST database for {self.config.second_species.atom_name}"
         )
         second_species = self.atomic_lines_getter.get_data(
-            self.config.second_species_atom_name,
-            self.config.second_species_target_peaks,
+            self.config.second_species.atom_name,
+            self.config.second_species.target_peaks,
         )
 
         return models._NISTAtomicLinesData(
@@ -155,13 +170,13 @@ class App:
         first_species_data = self.integral_calculator.calculate(
             spectrum_correction_data.corrected_spectrum,
             peak_indices,
-            self.config.first_species_target_peaks,
+            self.config.first_species.target_peaks,
         )
 
         second_species_data = self.integral_calculator.calculate(
             spectrum_correction_data.corrected_spectrum,
             peak_indices,
-            self.config.second_species_target_peaks,
+            self.config.second_species.target_peaks,
         )
 
         return models._IntegralsData(first_species_data, second_species_data)
@@ -187,49 +202,49 @@ class App:
         self, temperature
     ) -> models._NISTPartitionFunctionData:
         self.logger.info(
-            f"Retrieving partition function from NIST database for {self.config.first_species_atom_name}"
+            f"Retrieving partition function from NIST database for {self.config.first_species.atom_name}"
         )
         first_species_atom = self.partition_function_getter.get_data(
-            species_name=self.config.first_species_atom_name,
+            species_name=self.config.first_species.atom_name,
             temperature=temperature,
         )
 
         self.logger.info(
-            f"Retrieving partition function from NIST database for {self.config.first_species_ion_name}"
+            f"Retrieving partition function from NIST database for {self.config.first_species.ion_name}"
         )
         first_species_ion = self.partition_function_getter.get_data(
-            species_name=self.config.first_species_ion_name, temperature=temperature
+            species_name=self.config.first_species.ion_name, temperature=temperature
         )
 
         self.logger.info(
-            f"Retrieving partition function from NIST database for {self.config.second_species_atom_name}"
+            f"Retrieving partition function from NIST database for {self.config.second_species.atom_name}"
         )
         second_species_atom = self.partition_function_getter.get_data(
-            species_name=self.config.second_species_atom_name,
+            species_name=self.config.second_species.atom_name,
             temperature=temperature,
         )
 
         self.logger.info(
-            f"Retrieving partition function from NIST database for {self.config.second_species_ion_name}"
+            f"Retrieving partition function from NIST database for {self.config.second_species.ion_name}"
         )
         second_species_ion = self.partition_function_getter.get_data(
-            species_name=self.config.second_species_ion_name,
+            species_name=self.config.second_species.ion_name,
             temperature=temperature,
         )
 
         self.logger.info(
-            f"Retrieving partition function from NIST database for {self.config.carrier_species_atom_name}"
+            f"Retrieving partition function from NIST database for {self.config.carrier_gas.atom_name}"
         )
         carrier_species_atom = self.partition_function_getter.get_data(
-            species_name=self.config.carrier_species_atom_name,
+            species_name=self.config.carrier_gas.atom_name,
             temperature=temperature,
         )
 
         self.logger.info(
-            f"Retrieving partition function from NIST database for {self.config.carrier_species_ion_name}"
+            f"Retrieving partition function from NIST database for {self.config.carrier_gas.ion_name}"
         )
         carrier_species_ion = self.partition_function_getter.get_data(
-            species_name=self.config.carrier_species_ion_name,
+            species_name=self.config.carrier_gas.ion_name,
             temperature=temperature,
         )
 
@@ -244,24 +259,24 @@ class App:
 
     def _get_ionization_energies_from_nist(self) -> models._NISTIonizationEnergyData:
         self.logger.info(
-            f"Retrieving ionization_energy from NIST database for {self.config.first_species_atom_name}"
+            f"Retrieving ionization_energy from NIST database for {self.config.first_species.atom_name}"
         )
         first_species = self.ionization_energy_getter.get_data(
-            self.config.first_species_atom_name
+            self.config.first_species.atom_name
         )
 
         self.logger.info(
-            f"Retrieving ionization_energy from NIST database for {self.config.second_species_atom_name}"
+            f"Retrieving ionization_energy from NIST database for {self.config.second_species.atom_name}"
         )
         second_species = self.ionization_energy_getter.get_data(
-            self.config.second_species_atom_name
+            self.config.second_species.atom_name
         )
 
         self.logger.info(
-            f"Retrieving ionization_energy from NIST database for {self.config.carrier_species_atom_name}"
+            f"Retrieving ionization_energy from NIST database for {self.config.carrier_gas.atom_name}"
         )
         carrier_species = self.ionization_energy_getter.get_data(
-            self.config.carrier_species_atom_name
+            self.config.carrier_gas.atom_name
         )
 
         return models._NISTIonizationEnergyData(

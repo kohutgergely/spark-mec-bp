@@ -5,23 +5,6 @@ from spark_mec_bp.calculators import VoigtIntegralData
 
 
 @dataclass
-class Config:
-    spectrum_path: str
-    spectrum_wavelength_column_index: int
-    spectrum_intensity_column_index: int
-    first_species_target_peaks: np.ndarray
-    second_species_target_peaks: np.ndarray
-    first_species_atom_name: str
-    first_species_ion_name: str
-    second_species_atom_name: str
-    second_species_ion_name: str
-    carrier_species_atom_name: str
-    carrier_species_ion_name: str
-    prominence_window_length: int
-    peak_minimum_requred_height: int
-
-
-@dataclass
 class Result:
     original_spectrum: np.ndarray
     corrected_spectrum: np.ndarray
@@ -35,6 +18,54 @@ class Result:
     second_species_atomic_lines: np.ndarray
     first_species_integrals_data: VoigtIntegralData
     second_species_integrals_data: VoigtIntegralData
+
+
+@dataclass
+class SpectrumCorrectionConfig:
+    iteration_limit: int = 50
+    ratio: float = 1e-5
+    lam: int = 1000000
+
+
+@dataclass
+class PeakFindingConfig:
+    minimum_requred_height: int
+
+
+@dataclass
+class VoigtIntegrationConfig:
+    prominence_window_length: int
+
+
+@dataclass
+class SpeciesConfig:
+    atom_name: str
+    ion_name: str
+    target_peaks: np.ndarray
+
+
+@dataclass
+class SpectrumConfig:
+    file_path: str
+    wavelength_column_index: int
+    intensity_column_index: int
+
+
+@dataclass
+class CarrierGasConfig:
+    atom_name: str
+    ion_name: int
+
+
+@dataclass
+class Config:
+    spectrum: SpectrumConfig
+    first_species: SpeciesConfig
+    second_species: SpeciesConfig
+    carrier_gas: CarrierGasConfig
+    spectrum_correction: SpectrumCorrectionConfig
+    peak_finding: PeakFindingConfig
+    voigt_integration: VoigtIntegrationConfig
 
 
 @dataclass

@@ -58,20 +58,38 @@ def test_mec_bp_e2e(mocker):
     ]
 
     config = application.Config(
-        spectrum_path="spark_mec_bp/application/test/test_data/input_data.asc",
-        spectrum_wavelength_column_index=0,
-        spectrum_intensity_column_index=10,
-        first_species_target_peaks=np.array([312.278, 406.507, 479.26]),
-        first_species_atom_name="Au I",
-        first_species_ion_name="Au II",
-        second_species_target_peaks=np.array([338.29, 520.9078, 546.54]),
-        second_species_atom_name="Ag I",
-        second_species_ion_name="Ag II",
-        carrier_species_atom_name="Ar I",
-        carrier_species_ion_name="Ar II",
-        prominence_window_length=40,
-        peak_minimum_requred_height=100,
+        spectrum=application.SpectrumConfig(
+            file_path="spark_mec_bp/application/test/test_data/input_data.asc",
+            wavelength_column_index=0,
+            intensity_column_index=10
+        ),
+        first_species=application.SpeciesConfig(
+            atom_name="Au I",
+            ion_name="Au II",
+            target_peaks=np.array([312.278, 406.507, 479.26])
+        ),
+        second_species=application.SpeciesConfig(
+            atom_name="Ag I",
+            ion_name="Ag II",
+            target_peaks=np.array([338.29, 520.9078, 546.54])
+        ),
+        carrier_gas=application.CarrierGasConfig(
+            atom_name="Ar I",
+            ion_name="Ar II"
+        ),
+        spectrum_correction=application.SpectrumCorrectionConfig(
+            iteration_limit=50,
+            ratio=0.00001,
+            lam=1000000
+        ),
+        peak_finding=application.PeakFindingConfig(
+            minimum_requred_height=100
+        ),
+        voigt_integration=application.VoigtIntegrationConfig(
+            prominence_window_length=40
+        )
     )
+
     app = application.App(config)
 
     result = app.run()

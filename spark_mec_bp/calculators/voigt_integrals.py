@@ -20,9 +20,14 @@ class VoigtIntegralData:
     fits: List[VoigtIntegralFit]
 
 
+@dataclass
+class VoigtIntegralCalculatorConfig:
+    prominance_window_length: int
+
+
 class VoigtIntegralCalculator:
-    def __init__(self, prominance_window_length: int) -> None:
-        self.prominance_wlen = prominance_window_length
+    def __init__(self, config: VoigtIntegralCalculatorConfig) -> None:
+        self.config = config
 
     def calculate(self, spectrum: np.ndarray, peak_index_table: np.ndarray, target_wavelengths: np.array) -> np.ndarray:
         wavelengths = spectrum[:, 0]
@@ -75,7 +80,7 @@ class VoigtIntegralCalculator:
             peak_index_table_with_wavelengths[peak_index_in_peak_table, 0]
         )
         prominences = peak_prominences(
-            intensities, [peak_index_in_spectrum], wlen=self.prominance_wlen
+            intensities, [peak_index_in_spectrum], wlen=self.config.prominance_window_length
         )
         peak_start_index = int(prominences[1])
         peak_end_index = 2 * int(
