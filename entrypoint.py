@@ -18,14 +18,14 @@ def log_results(line_pair_checker: LinePairChecker, result: application.Result):
 
     print(
         f"The number concentration ratio for \
-            {config.first_species_atom_name}-{config.second_species_atom_name}: {result.total_concentration:8.5f}"
+            {config.first_species.atom_name}-{config.second_species.atom_name}: {result.total_concentration:8.5f}"
     )
     print(f"The temperature is: {result.temperature:6.3f} K")
     print(
-        f"{config.first_species_atom_name} linepair deviations: {AuI_linepair_check}"
+        f"{config.first_species.atom_name} linepair deviations: {AuI_linepair_check}"
     )
     print(
-        f"{config.second_species_atom_name} linepair deviations: {AgI_linepair_check}"
+        f"{config.second_species.atom_name} linepair deviations: {AgI_linepair_check}"
     )
 
 
@@ -33,7 +33,7 @@ def plot_figures(plotter: Plotter, result: application.Result):
     plotter.plot_original_spectrum(
         spectrum=result.original_spectrum,
         baseline=result.baseline,
-        spectrum_intensity_column_index=config.spectrum_intensity_column_index
+        spectrum_intensity_column_index=config.spectrum.intensity_column_index
     )
 
     plotter.plot_saha_boltzmann_line_pairs(
@@ -44,7 +44,7 @@ def plot_figures(plotter: Plotter, result: application.Result):
     plotter.plot_baseline_corrected_spectrum_with_the_major_peaks(
         corrected_spectrum=result.corrected_spectrum,
         peak_indices=result.peak_indices,
-        wlen=config.prominence_window_length,
+        wlen=config.voigt_integration.prominence_window_length,
         xlim=[400, 410],
         ylim=[0, 2000],
     )
@@ -58,9 +58,9 @@ if __name__ == "__main__":
     line_pair_checker = LinePairChecker()
     config = application.Config(
         spectrum=application.SpectrumConfig(
-            file_path="spark_mec_bp/application/test/test_data/input_data.asc",
+            file_path="spark_mec_bp/application/test/test_data/noise_test.asc",
             wavelength_column_index=0,
-            intensity_column_index=10
+            intensity_column_index=15
         ),
         first_species=application.SpeciesConfig(
             atom_name="Au I",
@@ -82,10 +82,10 @@ if __name__ == "__main__":
             lam=1000000
         ),
         peak_finding=application.PeakFindingConfig(
-            minimum_requred_height=2000
+            minimum_requred_height=0.001
         ),
         voigt_integration=application.VoigtIntegrationConfig(
-            prominence_window_length=40
+            prominence_window_length=60
         )
     )
 
