@@ -1,6 +1,4 @@
-from dataclasses import dataclass
-import numpy as np
-
+from spark_mec_bp.application import models
 from spark_mec_bp.readers import ASCIISpectrumReader
 from spark_mec_bp.lib import PeakFinder, SpectrumCorrector
 from spark_mec_bp.logger import Logger
@@ -32,71 +30,8 @@ from spark_mec_bp.nist.parsers import (
 )
 
 
-@dataclass
-class ApplicationConfig:
-    spectrum_path: str
-    spectrum_wavelength_column_index: int
-    spectrum_intensity_column_index: int
-    first_species_target_peaks: np.ndarray
-    second_species_target_peaks: np.ndarray
-    first_species_atom_name: str
-    first_species_ion_name: str
-    second_species_atom_name: str
-    second_species_ion_name: str
-    carrier_species_atom_name: str
-    carrier_species_ion_name: str
-    prominence_window_length: int
-    peak_minimum_requred_height: int
-
-
-@dataclass
-class ApplicationResult:
-    original_spectrum: np.ndarray
-    corrected_spectrum: np.ndarray
-    baseline: np.ndarray
-    peak_indices: np.ndarray
-    intensity_ratios: np.ndarray
-    fitted_intensity_ratios: np.ndarray
-    total_concentration: float
-    temperature: float
-    first_species_atomic_lines: np.ndarray
-    second_species_atomic_lines: np.ndarray
-    first_species_integrals: np.ndarray
-    second_species_integrals: np.ndarray
-
-
-class Application:
-    @dataclass
-    class _NISTAtomicLinesData:
-        first_species: np.ndarray
-        second_species: np.ndarray
-
-    @dataclass
-    class _NISTPartitionFunctionData:
-        first_species_atom: float
-        first_species_ion: float
-        second_species_atom: float
-        second_species_ion: float
-        carrier_species_atom: float
-        carrier_species_ion: float
-
-    @dataclass
-    class _NISTIonizationEnergyData:
-        first_species: float
-        second_species: float
-        carrier_species: float
-
-    @dataclass
-    class _IntegralsData:
-        first_species: np.ndarray
-        second_species: np.ndarray
-
-    @dataclass
-    class _IonAtomConcentrationData:
-        first_species: float
-        second_species: float
-
-    def __init__(self, config: ApplicationConfig):
+class App:
+    def __init__(self, config: models.Config):
         self.config = config
         self.logger = Logger().new()
         self.file_reader = ASCIISpectrumReader()
@@ -132,8 +67,8 @@ class Application:
         spectrum_correction_data = self._correct_spectrum(spectrum)
         peak_indices = self._find_peaks(spectrum_correction_data)
         atomic_lines = self._get_atomic_lines()
-        integrals = self._caluclate_integrals(spectrum_correction_data, peak_indices)
-        intensity_ratio_data = self._calculate_intensity_ratios(atomic_lines, integrals)
+        integrals_data = self._caluclate_integrals(spectrum_correction_data, peak_indices)
+        intensity_ratio_data = self._calculate_intensity_ratios(atomic_lines, integrals_data)
         temperature = self._calculate_temperature(intensity_ratio_data)
         partition_functions = self._get_partition_functions_from_nist(temperature)
         ionization_energies = self._get_ionization_energies_from_nist()
@@ -153,7 +88,7 @@ class Application:
             atom_concentration, ion_atom_concentrations
         )
 
-        return ApplicationResult(
+        return models.Result(
             original_spectrum=spectrum,
             corrected_spectrum=spectrum_correction_data.corrected_spectrum,
             baseline=spectrum_correction_data.baseline,
@@ -163,9 +98,9 @@ class Application:
             total_concentration=total_concentration,
             temperature=temperature,
             first_species_atomic_lines=atomic_lines.first_species,
-            first_species_integrals=integrals.first_species,
+            first_species_integrals_data=integrals_data.first_species,
             second_species_atomic_lines=atomic_lines.second_species,
-            second_species_integrals=integrals.second_species,
+            second_species_integrals_data=integrals_data.second_species,
         )
 
     def _read_spectrum(self):
@@ -191,7 +126,7 @@ class Application:
             spectrum_correction_data.corrected_spectrum[:, 1]
         )
 
-    def _get_atomic_lines(self) -> _NISTAtomicLinesData:
+    def _get_atomic_lines(self) -> models._NISTAtomicLinesData:
         self.logger.info(
             f"Retrieving partition function from NIST database for {self.config.first_species_atom_name}"
         )
@@ -207,38 +142,38 @@ class Application:
             self.config.second_species_target_peaks,
         )
 
-        return self._NISTAtomicLinesData(
+        return models._NISTAtomicLinesData(
             first_species,
             second_species,
         )
 
     def _caluclate_integrals(
         self, spectrum_correction_data, peak_indices
-    ) -> _IntegralsData:
+    ) -> models._IntegralsData:
         self.logger.info("Calculating integrals")
 
-        first_species = self.integral_calculator.calculate(
+        first_species_data = self.integral_calculator.calculate(
             spectrum_correction_data.corrected_spectrum,
             peak_indices,
             self.config.first_species_target_peaks,
         )
 
-        second_species = self.integral_calculator.calculate(
+        second_species_data = self.integral_calculator.calculate(
             spectrum_correction_data.corrected_spectrum,
             peak_indices,
             self.config.second_species_target_peaks,
         )
 
-        return self._IntegralsData(first_species, second_species)
+        return models._IntegralsData(first_species_data, second_species_data)
 
-    def _calculate_intensity_ratios(self, atomic_lines, integrals):
+    def _calculate_intensity_ratios(self, atomic_lines, integrals_data):
         self.logger.info("Calculating intensity ratios")
 
         return self.intensity_ratios_calculator.calculate(
             first_species_atomic_lines=atomic_lines.first_species,
-            first_species_integrals=integrals.first_species,
+            first_species_integrals=integrals_data.first_species.integrals,
             second_species_atomic_lines=atomic_lines.second_species,
-            second_species_integrals=integrals.second_species,
+            second_species_integrals=integrals_data.second_species.integrals,
         )
 
     def _calculate_temperature(self, intensity_ratio_data):
@@ -250,7 +185,7 @@ class Application:
 
     def _get_partition_functions_from_nist(
         self, temperature
-    ) -> _NISTPartitionFunctionData:
+    ) -> models._NISTPartitionFunctionData:
         self.logger.info(
             f"Retrieving partition function from NIST database for {self.config.first_species_atom_name}"
         )
@@ -298,7 +233,7 @@ class Application:
             temperature=temperature,
         )
 
-        return self._NISTPartitionFunctionData(
+        return models._NISTPartitionFunctionData(
             first_species_atom,
             first_species_ion,
             second_species_atom,
@@ -307,7 +242,7 @@ class Application:
             carrier_species_ion,
         )
 
-    def _get_ionization_energies_from_nist(self):
+    def _get_ionization_energies_from_nist(self) -> models._NISTIonizationEnergyData:
         self.logger.info(
             f"Retrieving ionization_energy from NIST database for {self.config.first_species_atom_name}"
         )
@@ -329,7 +264,7 @@ class Application:
             self.config.carrier_species_atom_name
         )
 
-        return self._NISTIonizationEnergyData(
+        return models._NISTIonizationEnergyData(
             first_species,
             second_species,
             carrier_species,
@@ -362,7 +297,7 @@ class Application:
         partition_functions,
         ionization_energies,
         electron_concentration,
-    ) -> _IonAtomConcentrationData:
+    ) -> models._IonAtomConcentrationData:
         self.logger.info("Calculating ion-atom concentration")
 
         first_species = self.ion_atom_concentration_calculator.calculate(
@@ -381,7 +316,7 @@ class Application:
             partition_function_ion=partition_functions.second_species_ion,
         )
 
-        return self._IonAtomConcentrationData(
+        return models._IonAtomConcentrationData(
             first_species,
             second_species,
         )

@@ -1,18 +1,18 @@
 import numpy as np
-from spark_mec_bp import Application, ApplicationResult, ApplicationConfig
+from spark_mec_bp import application
 from spark_mec_bp.plotting import Plotter
 from spark_mec_bp.lib import LinePairChecker
 
 
-def log_results(line_pair_checker: LinePairChecker, result: ApplicationResult):
+def log_results(line_pair_checker: LinePairChecker, result: application.Result):
     AuI_linepair_check = line_pair_checker.check_line_pairs(
         result.first_species_atomic_lines,
-        result.first_species_integrals,
+        result.first_species_integrals_data.integrals,
         result.temperature,
     )
     AgI_linepair_check = line_pair_checker.check_line_pairs(
         result.second_species_atomic_lines,
-        result.second_species_integrals,
+        result.second_species_integrals_data.integrals,
         result.temperature,
     )
 
@@ -29,7 +29,7 @@ def log_results(line_pair_checker: LinePairChecker, result: ApplicationResult):
     )
 
 
-def plot_figures(plotter: Plotter, result: ApplicationResult):
+def plot_figures(plotter: Plotter, result: application.Result):
     plotter.plot_original_spectrum(
         spectrum=result.original_spectrum,
         baseline=result.baseline,
@@ -46,17 +46,20 @@ def plot_figures(plotter: Plotter, result: ApplicationResult):
         peak_indices=result.peak_indices,
         wlen=config.prominence_window_length,
         xlim=[400, 410],
-        ylim=[0, 0.01],
+        ylim=[0, 2000],
     )
+
+    plotter.plot_voigt_fit("Au I", result.first_species_integrals_data.fits)
+    plotter.plot_voigt_fit("Ag I", result.second_species_integrals_data.fits)
 
 
 if __name__ == "__main__":
     plotter = Plotter()
     line_pair_checker = LinePairChecker()
-    config = ApplicationConfig(
-        spectrum_path="spark_mec_bp/tests/test_data/input_data.asc",
+    config = application.Config(
+        spectrum_path="spark_mec_bp/application/test/test_data/input_data.asc",
         spectrum_wavelength_column_index=0,
-        spectrum_intensity_column_index=5,
+        spectrum_intensity_column_index=10,
         first_species_target_peaks=np.array([312.278, 406.507, 479.26]),
         first_species_atom_name="Au I",
         first_species_ion_name="Au II",
@@ -65,10 +68,10 @@ if __name__ == "__main__":
         second_species_ion_name="Ag II",
         carrier_species_atom_name="Ar I",
         carrier_species_ion_name="Ar II",
-        prominence_window_length=60,
-        peak_minimum_requred_height=0.001,
+        prominence_window_length=40,
+        peak_minimum_requred_height=2000,
     )
-    app = Application(config)
+    app = application.App(config)
 
     result = app.run()
 

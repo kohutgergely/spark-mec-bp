@@ -3,9 +3,16 @@ from matplotlib import pyplot as plt
 from scipy.signal import peak_prominences
 from typing import List
 
+from spark_mec_bp.calculators import VoigtIntegralFit
+
 
 class Plotter:
-    def plot_original_spectrum(self, spectrum: np.ndarray, baseline: np.ndarray, spectrum_intensity_column_index: int) -> None:
+    def plot_original_spectrum(
+        self,
+        spectrum: np.ndarray,
+        baseline: np.ndarray,
+        spectrum_intensity_column_index: int
+    ) -> None:
         plt.plot(spectrum[:, 0], spectrum[:, spectrum_intensity_column_index])
         plt.plot(spectrum[:, 0], baseline)
         plt.xlim([310, 800])
@@ -75,3 +82,11 @@ class Plotter:
         plt.ylabel("Intensity (a.u.)")
         plt.title("Baseline corrected spectrum with the major peaks")
         plt.figure()
+
+    def plot_voigt_fit(self, species_name: str, voigt_integral_fits: List[VoigtIntegralFit]):
+        for voigt_integral_fit in voigt_integral_fits:
+            plt.title(f"Voigt fit for {species_name}")
+            plt.plot(voigt_integral_fit.wavelengths, voigt_integral_fit.intensities, 'o', label='Original spectrum')
+            plt.plot(voigt_integral_fit.wavelengths, voigt_integral_fit.fit, label='Voigt fit')
+            plt.legend()
+            plt.show()

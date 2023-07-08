@@ -1,6 +1,7 @@
 import numpy as np
 from pytest import approx
-from spark_mec_bp import Application, ApplicationConfig
+
+from spark_mec_bp import application
 
 
 def test_mec_bp_e2e(mocker):
@@ -29,14 +30,14 @@ def test_mec_bp_e2e(mocker):
     ionization_energy_second_species = 61106.45
 
     atomic_lines_getter = mocker.patch(
-        "spark_mec_bp.app.AtomicLinesDataGetter",
+        "spark_mec_bp.application.app.AtomicLinesDataGetter",
     )
     atomic_lines_getter.return_value.get_data.side_effect = [
         first_species_atomic_lines,
         second_species_atomic_lines,
     ]
     partition_function_getter = mocker.patch(
-        "spark_mec_bp.app.PartitionFunctionDataGetter",
+        "spark_mec_bp.application.app.PartitionFunctionDataGetter",
     )
     partition_function_getter.return_value.get_data.side_effect = [
         partition_function_first_species_atom,
@@ -48,7 +49,7 @@ def test_mec_bp_e2e(mocker):
     ]
 
     ioniztion_energy_getter = mocker.patch(
-        "spark_mec_bp.app.IonizationEnergyDataGetter",
+        "spark_mec_bp.application.app.IonizationEnergyDataGetter",
     )
     ioniztion_energy_getter.return_value.get_data.side_effect = [
         ionization_energy_first_species,
@@ -56,8 +57,8 @@ def test_mec_bp_e2e(mocker):
         ionization_energy_carrier_species,
     ]
 
-    config = ApplicationConfig(
-        spectrum_path="spark_mec_bp/tests/test_data/input_data.asc",
+    config = application.Config(
+        spectrum_path="spark_mec_bp/application/test/test_data/input_data.asc",
         spectrum_wavelength_column_index=0,
         spectrum_intensity_column_index=10,
         first_species_target_peaks=np.array([312.278, 406.507, 479.26]),
@@ -71,7 +72,7 @@ def test_mec_bp_e2e(mocker):
         prominence_window_length=40,
         peak_minimum_requred_height=100,
     )
-    app = Application(config)
+    app = application.App(config)
 
     result = app.run()
 
