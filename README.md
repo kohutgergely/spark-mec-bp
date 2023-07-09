@@ -1,9 +1,9 @@
-# Spark Multi-element Combinatory Boltzmann Plots
+# Spark Multi-element Combinatory Boltzmann Plot
 
 
 ## What is it?
 
-Spark Multi-element Combinatory Boltzmann Plots is an OES-based approach to deduce the number concentration ratio of two elements present in a spark discharge plasma employed for binary NP generation in the gas phase. It is aimed to provide a tool for investigating the evolution of the concentration ratio corresponding to the ablated electrode materials in spark-based NP generators under real operational conditions. The method is based on the construction of a Boltzmann plot for the spectral line intensity ratios at every combination. The produced plots (the so-called multi-element combinatory Boltzmann plots, MEC-BPs) are directly related to the LTE plasma temperature and the number concentration ratio of the neutral atoms. The total concentration ratio – including ions – is calculated from a simple plasma model, without requiring further measurements.
+Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduce the number concentration ratio of two elements present in a spark discharge plasma employed for binary NP generation in the gas phase. It is aimed to provide a tool for investigating the evolution of the concentration ratio corresponding to the ablated electrode materials in spark-based NP generators under real operational conditions. The method is based on the construction of a Boltzmann plot for the spectral line intensity ratios at every combination. The produced plots (the so-called multi-element combinatory Boltzmann plots, MEC-BPs) are directly related to the LTE plasma temperature and the number concentration ratio of the neutral atoms. The total concentration ratio – including ions – is calculated from a simple plasma model, without requiring further measurements.
 
 ## Table of Contents
 
@@ -141,7 +141,7 @@ The **AppConfig** itself can be configured with instances of the following confi
     )
     ```
     * ***minimum_requred_height***: Required height of peak
--  **VoigtIntegrationConfig**: configures parameters related the calculations of peak integrals.
+-  **VoigtIntegrationConfig**: configures parameters related the calculations of peak integral intensities.
     ```
     VoigtIntegrationConfig(
         prominence_window_length=40
@@ -159,7 +159,7 @@ The program provides the following results as an instance of a result class:
 - ***peak_indices***: the detected peak indices (numpy.ndarray)
 - ***intensity_ratios***: intensity ratios (numpy.ndarray)
 - ***fitted_intensity_ratios***: fitted intensity ratios (np.ndarray)
-- ***total_concentration***: the total calculated concentration (float)
+- ***total_concentration***: the total calculated concentration ratio of the two target elements (float)
 - ***temperature***: the plasma temperature (float)
 - ***first_species_atomic_lines***: the atomic lines data for the first species (numpy.ndarray)
 - ***second_species_atomic_lines***: the atomic lines data for the second species (numpy.ndarray)
