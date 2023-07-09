@@ -41,7 +41,10 @@ class VoigtIntegrationConfig:
 class SpeciesConfig:
     atom_name: str
     ion_name: str
-    target_peaks: np.ndarray
+    target_peaks: list
+
+    def __post_init__(self):
+        self.target_peaks = np.array(self.target_peaks)
 
 
 @dataclass
@@ -58,7 +61,7 @@ class CarrierGasConfig:
 
 
 @dataclass
-class Config:
+class AppConfig:
     spectrum: SpectrumConfig
     first_species: SpeciesConfig
     second_species: SpeciesConfig

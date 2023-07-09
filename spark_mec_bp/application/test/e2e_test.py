@@ -57,7 +57,7 @@ def test_mec_bp_e2e(mocker):
         ionization_energy_carrier_species,
     ]
 
-    config = application.Config(
+    config = application.AppConfig(
         spectrum=application.SpectrumConfig(
             file_path="spark_mec_bp/application/test/test_data/input_data.asc",
             wavelength_column_index=0,
@@ -66,12 +66,12 @@ def test_mec_bp_e2e(mocker):
         first_species=application.SpeciesConfig(
             atom_name="Au I",
             ion_name="Au II",
-            target_peaks=np.array([312.278, 406.507, 479.26])
+            target_peaks=[312.278, 406.507, 479.26]
         ),
         second_species=application.SpeciesConfig(
             atom_name="Ag I",
             ion_name="Ag II",
-            target_peaks=np.array([338.29, 520.9078, 546.54])
+            target_peaks=[338.29, 520.9078, 546.54]
         ),
         carrier_gas=application.CarrierGasConfig(
             atom_name="Ar I",

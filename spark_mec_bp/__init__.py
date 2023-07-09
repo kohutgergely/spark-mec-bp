@@ -1,3 +1,3 @@
 from .application.app import App
-from .application.models import Config
+from .application.models import AppConfig
 

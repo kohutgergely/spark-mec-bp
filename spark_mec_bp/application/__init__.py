@@ -6,6 +6,6 @@ from .models import (
     VoigtIntegrationConfig,
     SpectrumCorrectionConfig,
     PeakFindingConfig,
-    Config,
+    AppConfig,
     Result
 )

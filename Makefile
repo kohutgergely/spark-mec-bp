@@ -1,6 +1,6 @@
 MAKEFILE := $(firstword $(MAKEFILE_LIST))
-DOCKER_IMAGE_NAME=plasma-characterizer
-DOCKER_TEST_IMAGE_NAME=plasma-characterizer-test
+DOCKER_IMAGE_NAME=spark-mec-bp
+DOCKER_TEST_IMAGE_NAME=spark-mec-bp-test
 
 RUN_IN_DOCKER= \
         docker run --rm \
@@ -24,7 +24,7 @@ shell: build-test
 
 .PHONY: test
 test: build-test
-	${RUN_IN_DOCKER} -it ${DOCKER_TEST_IMAGE_NAME} pytest -s /app
+	${RUN_IN_DOCKER} -it ${DOCKER_TEST_IMAGE_NAME} pytest -s /app/spark_mec_bp
 
 .PHONY: lint
 lint: build-test
@@ -32,7 +32,7 @@ lint: build-test
 
 .PHONY: test-ci
 test-ci: build-test
-	${RUN_IN_DOCKER} ${DOCKER_TEST_IMAGE_NAME} pytest /app
+	${RUN_IN_DOCKER} ${DOCKER_TEST_IMAGE_NAME} pytest /app/spark_mec_bp
 
 .PHONY: jupyter
 jupyter:  build-test

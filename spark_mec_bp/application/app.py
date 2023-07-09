@@ -38,7 +38,7 @@ from spark_mec_bp.nist.parsers import (
 
 
 class App:
-    def __init__(self, config: models.Config):
+    def __init__(self, config: models.AppConfig):
         self.config = config
         self.logger = Logger().new()
         self.file_reader = ASCIISpectrumReader()
