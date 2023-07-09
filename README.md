@@ -191,4 +191,4 @@ print(result.second_species_integrals_data.fits[0].intensities)
 
 If you have general or usage questions or having trouble using the program, feel free to open an issue.
 
-If you have technical/scientific questions contact [us](akohut@titan.physx.u-szeged.hu).
+If you have technical/scientific questions contact [us](mailto:akohut@titan.physx.u-szeged.hu).
