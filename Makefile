@@ -24,7 +24,7 @@ shell: build-test
 
 .PHONY: test
 test: build-test
-	${RUN_IN_DOCKER} -it ${DOCKER_TEST_IMAGE_NAME} pytest -s /app/spark_mec_bp
+	${RUN_IN_DOCKER} -it ${DOCKER_TEST_IMAGE_NAME} pytest
 
 .PHONY: lint
 lint: build-test
@@ -32,7 +32,7 @@ lint: build-test
 
 .PHONY: test-ci
 test-ci: build-test
-	${RUN_IN_DOCKER} ${DOCKER_TEST_IMAGE_NAME} pytest /app/spark_mec_bp
+	${RUN_IN_DOCKER} ${DOCKER_TEST_IMAGE_NAME} pytest
 
 .PHONY: jupyter
 jupyter:  build-test
