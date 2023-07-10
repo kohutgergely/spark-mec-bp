@@ -1,6 +1,6 @@
 from spark_mec_bp import application
 from spark_mec_bp.plotting import Plotter
-from spark_mec_bp.lib import LinePairChecker
+from spark_mec_bp.validation import LinePairChecker
 
 
 def log_results(line_pair_checker: LinePairChecker, result: application.Result):

@@ -14,6 +14,13 @@ Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduc
         - [Running the app](#running-the-app)
         - [Configuring the app](#configuring-the-app)
         - [Accessing the results](#accessing-the-results)
+        - [Validation and plotting](#validation-and-plotting)
+    - [Querying data from NIST database](#querying-dta-from-nist-database)
+        - [Fetching data](#fetching-data)
+            - [Fetching atomic lines data](#fetching-atomic-lines-data)
+            - [Fetching atomic levels data](#fetching-atomic-levels-data)
+            - [Fetching ionization energies](#fetching-ionization-energies)
+        - [Parsing fetched data](#parsing-fetched-data)
 - [Getting Help](#getting-help)
 
 
@@ -183,6 +190,177 @@ print(result.second_species_integrals_data.fits[0].fit)
 print(result.second_species_integrals_data.fits[0].wavelengths)
 print(result.second_species_integrals_data.fits[0].intensities)
 ```
+
+#### Validation and plotting
+
+
+To validate the results the lin pair deviations can be checked using the LinePairChecker class:
+
+```
+from spark-mec-bp.validation import LinePairChecker
+
+line_pair_checker = LinePairChecker()
+AuI_linepair_check = line_pair_checker.check_line_pairs(
+    result.first_species_atomic_lines,
+    result.first_species_integrals_data.integrals,
+    result.temperature,
+)
+AgI_linepair_check = line_pair_checker.check_line_pairs(
+    result.second_species_atomic_lines,
+    result.second_species_integrals_data.integrals,
+    result.temperature,
+)
+
+print(
+    f"{config.first_species.atom_name} linepair deviations: {AuI_linepair_check}"
+)
+print(
+    f"{config.second_species.atom_name} linepair deviations: {AgI_linepair_check}"
+)
+```
+
+To be able to further analyize the results some predifined plots are also provided as methods of a separate Plotter class:
+
+```
+from spark_mec_bp.plotting import Plotter
+
+plotter = Plotter()
+
+plotter.plot_original_spectrum(
+    spectrum=result.original_spectrum,
+    baseline=result.baseline,
+    spectrum_intensity_column_index=config.spectrum.intensity_column_index
+)
+
+plotter.plot_saha_boltzmann_line_pairs(
+    intensity_ratios=result.intensity_ratios,
+    fitted_intensity_ratios=result.fitted_intensity_ratios
+)
+
+plotter.plot_baseline_corrected_spectrum_with_the_major_peaks(
+    corrected_spectrum=result.corrected_spectrum,
+    peak_indices=result.peak_indices,
+    wlen=config.voigt_integration.prominence_window_length,
+    xlim=[400, 410],
+    ylim=[0, 2000],
+)
+
+plotter.plot_voigt_fit("Au I", result.first_species_integrals_data.fits)
+plotter.plot_voigt_fit("Ag I", result.second_species_integrals_data.fits)
+
+```
+
+## Querying data from NIST database
+
+### Fetching data
+
+The software can also be used to fetch data directly from NIST.
+All three forms (atomic lines data, atomic levels data, ionization energies) can be fetched, although some limitations are still present compared to the capabilities of the online forms.
+
+#### Fetching atomic lines data
+
+Atomic lines data can be fetched using the AtomicLinesFetcher class:
+
+```
+from spark_mec_bp.nist import fetchers
+
+new_fetcher = fetchers.AtomicLinesFetcher()
+
+atomic_lines_data = new_fetcher.fetch(
+    spectrum="Ag I", lower_wavelength=400, upper_wavelength=800
+)
+
+print(atomic_lines_data.data)
+
+```
+The fetch function expects the following parameters:
+
+* ***spectrum***: name of spectrum to be fetched, conforming NIST conventions (str)
+* ***lower_wavelength***: lower wavelength of spectrum (int)
+* ***upper_wavelength***: upper wavelength  of spectrum (int)
+
+For more information regarding the form details and output see [NIST atomic lines form](https://physics.nist.gov/PhysRefData/ASD/lines_form.html).
+
+Example output:
+
+```
+obs_wl_air(nm)  ritz_wl_air(nm) unc_ritz_wl     obs-ritz        wn(cm-1)        Aki(s^-1)       fik     S(a.u.) log_gf  Acc     Ei(cm-1)        Ek(cm-1)        conf_i  term_i  J_i     conf_k       term_k  J_k     g_i     g_k     Type
+"405.5476"      "405.54750"     "0.00003"       "0.0001"        "24651.06"      ""      ""      ""      ""              "29552.05741"   "54203.119"     "4d10.5p"       "2P*"   "1/2"   "4d10.6d"    "2D"    "3/2"   2       4
+"408.343"       ""      ""      ""      "24482.3"       ""      ""      ""      ""              ""      ""      ""      ""      ""      ""      ""      ""
+"421.0960"      "421.09542"     "0.00005"       "0.0006"        "23740.87"      ""      ""      ""      ""              "30472.66516"   "54213.564"     "4d10.5p"       "2P*"   "3/2"   "4d10.6d"    "2D"    "5/2"   4       6
+
+```
+
+#### Fetching atomic levels data
+
+Atomic levels data can be fetched using the AtomicLevelsFetcher class:
+
+```
+from spark_mec_bp.nist import fetchers
+
+new_fetcher = fetchers.AtomicLevelsFetcher()
+
+atomic_levels_data = new_fetcher.fetch(
+    "Ag I", lower_wavelength=400, upper_wavelength=800
+)
+
+print(atomic_levels_data.data)
+
+```
+
+The fetch function expects the following parameters:
+
+* ***spectrum***: name of spectrum to be fetched, conforming NIST conventions (str)
+* ***temperature***: temperature in eV to calculate partition function for (float)
+
+For more information regarding the form details and output see [NIST atomic levels form](https://physics.nist.gov/PhysRefData/ASD/levels_form.html).
+
+Example output:
+
+```
+Configuration   Term    J       g       Prefix  Level (cm-1)    Suffix  Uncertainty (cm-1)
+"4d10.5s"       "2S"    "1/2"   2       ""      "0.000000"      ""      ""
+"4d10.5p"       "2P*"   "1/2"   2       ""      "29552.05741"   ""      "0.00014"
+"4d10.5p"       "2P*"   "3/2"   4       ""      "30472.66516"   ""      "0.00022"
+"4d9.5s2"       "2D"    "5/2"   6       ""      "30242.298349"  ""      "0.000006"
+
+Partition function for Te = 5 eV: Z = 117.92
+```
+
+
+#### Fetching ionization energies
+
+The ionization energies form can also be fetched using the IonizationEnergiesFetcher class:
+
+```
+from spark_mec_bp.nist import fetchers
+
+new_fetcher = fetchers.IonizationEnergyFetcher()
+
+ionization_energies_data = new_fetcher.fetch(
+    spectrum="Ag I"
+)
+
+print(ionization_energies_data.data)
+
+```
+
+The fetch function expects the following parameters:
+
+* ***spectrum***: name of spectrum to be fetched, conforming NIST conventions (str)
+
+For more information regarding the form details and output see [NIST ionization energies form](https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html).
+
+Example output:
+
+```
+At. num Sp. Name        Ion Charge      El. Name        Isoel. Seq.     Ground Shells (a)       Ground Config.  Ground Level    Ionized Level   Prefix  Ionization Energy (1/cm)        Suffix Uncertainty (1/cm)
+"47"    "Ag I"  "0"     "Silver"        "Ag"    "[Kr].4d10.5s"  "4d10.5s"       "2S<1/2>"       "4d10 1S<0>"    ""      "61106.45"      ""      "0.20"
+Notes:
+(a) Designations used in the ground shell lists:
+     [Kr] = 1s2.2s2.2p6.3s2.3p6.3d10.4s2.4p6
+```
+
 
 ## License
 [BSD 3](LICENSE)
