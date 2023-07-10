@@ -46,17 +46,11 @@ class Plotter:
         xlim: List[int],
         ylim: List[int],
     ):
-        left = peak_prominences(
+        _, left, right = peak_prominences(
             corrected_spectrum[:, 1],
             peak_indices,
             wlen=wlen,
-        )[1]
-        right = peak_prominences(
-            corrected_spectrum[:, 1],
-            peak_indices,
-            wlen=wlen,
-        )[2]
-
+        )
         plt.plot(
             corrected_spectrum[:, 0],
             corrected_spectrum[:, 1],
