@@ -92,5 +92,3 @@ class Plotter:
             plt.plot(voigt_integral_fit.wavelengths, voigt_integral_fit.fit, label='Voigt fit')
             plt.legend()
             plt.show()
-
-            
