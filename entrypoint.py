@@ -16,8 +16,8 @@ def log_results(line_pair_checker: LinePairChecker, result: application.Result):
     )
 
     print(
-        f"The number concentration ratio for \
-            {config.first_species.atom_name}-{config.second_species.atom_name}: {result.total_concentration:8.5f}"
+        f"The total number concentration ratio of the elements calculated from the \
+            {config.first_species.atom_name}-{config.second_species.atom_name} lines: {result.total_concentration:8.5f}"
     )
     print(f"The temperature is: {result.temperature:6.3f} K")
     print(
@@ -44,8 +44,8 @@ def plot_figures(plotter: Plotter, result: application.Result):
         corrected_spectrum=result.corrected_spectrum,
         peak_indices=result.peak_indices,
         wlen=config.voigt_integration.prominence_window_length,
-        xlim=[400, 410],
-        ylim=[0, 2000],
+        xlim=[400, 522],
+        ylim=[0, 0.05],
     )
 
     plotter.plot_voigt_fit("Au I", result.first_species_integrals_data.fits)
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         spectrum=application.SpectrumConfig(
             file_path="spark_mec_bp/application/test/test_data/noise_test.asc",
             wavelength_column_index=0,
-            intensity_column_index=15
+            intensity_column_index=2
         ),
         first_species=application.SpeciesConfig(
             atom_name="Au I",
@@ -81,7 +81,7 @@ if __name__ == "__main__":
             lam=1000000
         ),
         peak_finding=application.PeakFindingConfig(
-            minimum_requred_height=0.001
+            minimum_requred_height=0.015
         ),
         voigt_integration=application.VoigtIntegrationConfig(
             prominence_window_length=60

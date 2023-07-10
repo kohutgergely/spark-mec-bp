@@ -35,7 +35,7 @@ class Plotter:
         )
         plt.xlabel("Difference of upper energy levels (cm-1)")
         plt.ylabel("log of line intensity ratios (a.u.)")
-        plt.title("Saha-Boltzmann line-pair plot for Au I and Ag I lines")
+        plt.title("Multi-element combinatory Boltzmann plot for Au I and Ag I lines")
         plt.figure()
 
     def plot_baseline_corrected_spectrum_with_the_major_peaks(
@@ -86,7 +86,11 @@ class Plotter:
     def plot_voigt_fit(self, species_name: str, voigt_integral_fits: List[VoigtIntegralFit]):
         for voigt_integral_fit in voigt_integral_fits:
             plt.title(f"Voigt fit for {species_name}")
+            plt.xlabel("Wavelength (nm)")
+            plt.ylabel("Intensity (a.u.)")
             plt.plot(voigt_integral_fit.wavelengths, voigt_integral_fit.intensities, 'o', label='Original spectrum')
             plt.plot(voigt_integral_fit.wavelengths, voigt_integral_fit.fit, label='Voigt fit')
             plt.legend()
             plt.show()
+
+            
