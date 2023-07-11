@@ -2,13 +2,12 @@
 
 
 ## What is it?
-<style>body {text-align: justify}</style>
+<p align="justify">
 Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduce the number concentration ratio of two elements present in a spark discharge plasma employed for binary NP generation in the gas phase. It is aimed to provide a tool for investigating the evolution of the concentration ratio corresponding to the ablated electrode materials in spark-based NP generators under real operational conditions. The method is based on the construction of a Boltzmann plot for the spectral line intensity ratios at every combination. The produced plots (the so-called multi-element combinatory Boltzmann plots, MEC-BPs) are directly related to the LTE plasma temperature and the number concentration ratio of the neutral atoms. The total concentration ratio – including ions – is calculated from a simple plasma model, without requiring further measurements.
-
+</p>
 ## Table of Contents
 
 - [Installation](#installation-from-sources)
-- [License](#license)
 - [Usage](#usage)
     - [Concentration calculation](#concentration-calculation)
         - [Running the app](#running-the-app)
@@ -24,6 +23,7 @@ Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduc
             - [Parse atomic lines data](#parse-atomic-lines-data)
             - [Parse atomic levels data](#parse-atomic-levels-data)
             - [Parse ionization energy data](#parse-ionization-energy-data)
+- [License](#license)
 - [Getting Help](#getting-help)
 
 
@@ -82,13 +82,15 @@ config = application.AppConfig(
 
     result = app.run()
 ```
+<p align="justify">
 As shown above, the **App** class needs to be instantiated with its config, an instance of **AppConfig**.
+</p>
 
 #### Configuring the app
 
-
+<p align="justify">
 The **AppConfig** itself can be configured with instances of the following config (sub)classes:
-
+</p>
 
 - **SpectrumConfig**: configures parameters related to spectrum.
     ```
