@@ -15,7 +15,7 @@ Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduc
         - [Configuring the app](#configuring-the-app)
         - [Accessing the results](#accessing-the-results)
         - [Validation and plotting](#validation-and-plotting)
-    - [Querying data from NIST database](#querying-dta-from-nist-database)
+    - [Querying data from NIST database](#querying-data-from-nist-database)
         - [Fetching data](#fetching-data)
             - [Fetching atomic lines data](#fetching-atomic-lines-data)
             - [Fetching atomic levels data](#fetching-atomic-levels-data)
