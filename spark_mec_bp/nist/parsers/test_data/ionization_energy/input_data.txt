@@ -1,0 +1,6 @@
+At. num	Sp. Name	Ion Charge	El. Name	Isoel. Seq.	Ground Shells (a)	Ground Config.	Ground Level	Ionized Level	Prefix	Ionization Energy (1/cm)	Suffix	Uncertainty (1/cm)	
+"47"	"Ag I"	"0"	"Silver"	"Ag"	"[Kr].4d10.5s"	"4d10.5s"	"2S<1/2>"	"4d10 1S<0>"	""	"61106.45"	""	"0.20"	
+Notes:
+(a) Designations used in the ground shell lists:
+     [Kr] = 1s2.2s2.2p6.3s2.3p6.3d10.4s2.4p6
+

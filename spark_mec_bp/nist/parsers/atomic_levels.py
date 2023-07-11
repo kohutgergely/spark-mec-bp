@@ -1,6 +1,8 @@
-from spark_mec_bp.nist.fetchers import AtomicLevelsData
-import pandas as pd
 from io import StringIO
+
+import pandas as pd
+
+from spark_mec_bp.nist.fetchers import AtomicLevelsData
 
 
 class AtomicLevelsParser:
@@ -14,9 +16,10 @@ class AtomicLevelsParser:
         return (
             pd.read_csv(StringIO(data), sep="\t", index_col=False)
             .iloc[:-1, :]
-            .infer_objects()
         )
 
     def _read_partition_function(self, atomic_levels_data: str) -> float:
-        partition_function_row = atomic_levels_data.split("\n")[-2]
-        return float(partition_function_row.split(" ")[-1])
+        for dataline in StringIO(atomic_levels_data).readlines():
+            striped_dataline = dataline.strip().lower()
+            if striped_dataline.startswith("partition function"):
+                return float(striped_dataline.split(" ")[-1])

@@ -1,6 +1,8 @@
-import pytest
-from spark_mec_bp.nist.fetchers import AtomicLinesFetcher
 from typing import Dict
+
+import pytest
+
+from spark_mec_bp.nist.fetchers import AtomicLinesFetcher
 
 
 @pytest.fixture()

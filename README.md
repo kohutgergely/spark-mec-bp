@@ -85,13 +85,17 @@ config = application.AppConfig(
     result = app.run()
 ```
 <p align="justify">
+
 As shown above, the **App** class needs to be instantiated with its config, an instance of **AppConfig**.
+
 </p>
 
 #### Configuring the app
 
 <p align="justify">
+
 The **AppConfig** itself can be configured with instances of the following config (sub)classes:
+
 </p>
 
 - **SpectrumConfig**: configures parameters related to spectrum.
@@ -263,6 +267,7 @@ plotter.plot_voigt_fit("Ag I", result.second_species_integrals_data.fits)
 ### Fetching data
 
 <p align="justify">
+
 The software can also be used to fetch data directly from NIST.
 All three forms (atomic lines data, atomic levels data, ionization energies) can be fetched, although some limitations are still present compared to the capabilities of the online forms.
 

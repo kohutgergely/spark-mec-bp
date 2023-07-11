@@ -1,4 +1,5 @@
 import pytest
+
 from spark_mec_bp.nist.fetchers import IonizationEnergyFetcher
 
 

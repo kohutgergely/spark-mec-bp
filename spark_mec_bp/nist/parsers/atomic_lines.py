@@ -1,6 +1,8 @@
-from spark_mec_bp.nist.fetchers import AtomicLinesData
-import pandas as pd
 from io import StringIO
+
+import pandas as pd
+
+from spark_mec_bp.nist.fetchers import AtomicLinesData
 
 
 class AtomicLinesParser:
@@ -10,6 +12,5 @@ class AtomicLinesParser:
     def _read_lines_to_dataframe(self, atomic_lines_data: str) -> pd.DataFrame:
         return (
             pd.read_csv(StringIO(atomic_lines_data), sep="\t", index_col=False)
-            .infer_objects()
             .iloc[:, :-1]
         )

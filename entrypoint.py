@@ -57,9 +57,9 @@ if __name__ == "__main__":
     line_pair_checker = LinePairChecker()
     config = application.AppConfig(
         spectrum=application.SpectrumConfig(
-            file_path="spark_mec_bp/application/test/test_data/noise_test.asc",
+            file_path="spark_mec_bp/application/test_data/input_data.asc",
             wavelength_column_index=0,
-            intensity_column_index=2
+            intensity_column_index=10
         ),
         first_species=application.SpeciesConfig(
             atom_name="Au I",
@@ -81,10 +81,10 @@ if __name__ == "__main__":
             lam=1000000
         ),
         peak_finding=application.PeakFindingConfig(
-            minimum_requred_height=0.015
+            minimum_requred_height=10
         ),
         voigt_integration=application.VoigtIntegrationConfig(
-            prominence_window_length=60
+            prominence_window_length=40
         )
     )
 

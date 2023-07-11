@@ -59,7 +59,7 @@ def test_mec_bp_e2e(mocker):
 
     config = application.AppConfig(
         spectrum=application.SpectrumConfig(
-            file_path="spark_mec_bp/application/test/test_data/input_data.asc",
+            file_path="spark_mec_bp/application/test_data/input_data.asc",
             wavelength_column_index=0,
             intensity_column_index=10
         ),
