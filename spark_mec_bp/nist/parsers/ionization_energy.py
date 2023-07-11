@@ -14,6 +14,6 @@ class IonizationEnergyParser:
     ) -> pd.DataFrame:
         return (
             pd.read_csv(StringIO(ionization_energy_data), sep="\t", index_col=False)
-            .iloc[:-3, :]
+            .iloc[:-3, :-1]
             .infer_objects()
         )

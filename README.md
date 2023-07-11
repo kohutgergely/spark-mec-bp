@@ -21,6 +21,9 @@ Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduc
             - [Fetching atomic levels data](#fetching-atomic-levels-data)
             - [Fetching ionization energies](#fetching-ionization-energies)
         - [Parsing fetched data](#parsing-fetched-data)
+            - [Parse atomic lines data](#parse-atomic-lines-data)
+            - [Parse atomic levels data](#parse-atomic-levels-data)
+            - [Parse ionization energy data](#parse-ionization-energy-data)
 - [Getting Help](#getting-help)
 
 
@@ -281,15 +284,15 @@ The fetch function expects the following parameters:
 
 For more information regarding the form details and output see [NIST atomic lines form](https://physics.nist.gov/PhysRefData/ASD/lines_form.html).
 
-Example output:
+Example output (truncated):
 
-```
-obs_wl_air(nm)  ritz_wl_air(nm) unc_ritz_wl     obs-ritz        wn(cm-1)        Aki(s^-1)       fik     S(a.u.) log_gf  Acc     Ei(cm-1)        Ek(cm-1)        conf_i  term_i  J_i     conf_k       term_k  J_k     g_i     g_k     Type
-"405.5476"      "405.54750"     "0.00003"       "0.0001"        "24651.06"      ""      ""      ""      ""              "29552.05741"   "54203.119"     "4d10.5p"       "2P*"   "1/2"   "4d10.6d"    "2D"    "3/2"   2       4
-"408.343"       ""      ""      ""      "24482.3"       ""      ""      ""      ""              ""      ""      ""      ""      ""      ""      ""      ""
-"421.0960"      "421.09542"     "0.00005"       "0.0006"        "23740.87"      ""      ""      ""      ""              "30472.66516"   "54213.564"     "4d10.5p"       "2P*"   "3/2"   "4d10.6d"    "2D"    "5/2"   4       6
+| obs_wl_air(nm) | ritz_wl_air(nm) | unc_ritz_wl | obs-ritz | wn(cm-1) | Aki(s^-1) | fik | S(a.u.) | log_gf | Acc | Ei(cm-1) | Ek(cm-1)   | conf_i  | term_i | J_i  | conf_k  | term_k | J_k  | g_i | g_k | Type |
+| -------------- | --------------- | ----------- | -------- | --------- | --------- | --- | ------- | ------ | --- | --------- | ----------- | ------- | ------ | ---- | -------- | ------ | ---- | --- | --- | ---- |
+| "405.5476"     | "405.54750"     | "0.00003"   | "0.0001"  | "24651.06" | ""        | ""  | ""      | ""     | ""  | "29552.05741" | "54203.119" | "4d10.5p" | "2P*"  | "1/2" | "4d10.6d" | "2D"   | "3/2" | 2   | 4   |      |
+| "408.343"      | ""              | ""          | ""       | "24482.3" | ""        | ""  | ""      | ""     | ""  | ""            | ""          | ""       | ""     | ""    | ""       | ""     | ""   | ""  | ""  |      |
+| "421.0960"     | "421.09542"     | "0.00005"   | "0.0006"  | "23740.87" | ""        | ""  | ""      | ""     | ""  | "30472.66516" | "54213.564" | "4d10.5p" | "2P*"  | "3/2" | "4d10.6d" | "2D"   | "5/2" | 4   | 6   |      |
 
-```
+
 
 #### Fetching atomic levels data
 
@@ -315,17 +318,18 @@ The fetch function expects the following parameters:
 
 For more information regarding the form details and output see [NIST atomic levels form](https://physics.nist.gov/PhysRefData/ASD/levels_form.html).
 
-Example output:
+Example output (truncated):
 
-```
-Configuration   Term    J       g       Prefix  Level (cm-1)    Suffix  Uncertainty (cm-1)
-"4d10.5s"       "2S"    "1/2"   2       ""      "0.000000"      ""      ""
-"4d10.5p"       "2P*"   "1/2"   2       ""      "29552.05741"   ""      "0.00014"
-"4d10.5p"       "2P*"   "3/2"   4       ""      "30472.66516"   ""      "0.00022"
-"4d9.5s2"       "2D"    "5/2"   6       ""      "30242.298349"  ""      "0.000006"
+
+| Configuration | Term | J   | g | Prefix | Level (cm-1)  | Suffix | Uncertainty (cm-1) |
+| ------------- | ---- | --- | - | ------ | ------------- | ------ | ------------------ |
+| "4d10.5s"     | "2S" | "1/2" | 2 | ""     | "0.000000"    | ""     | ""                 |
+| "4d10.5p"     | "2P*" | "1/2" | 2 | ""     | "29552.05741" | ""     | "0.00014"          |
+| "4d10.5p"     | "2P*" | "3/2" | 4 | ""     | "30472.66516" | ""     | "0.00022"          |
+| "4d9.5s2"     | "2D" | "5/2" | 6 | ""     | "30242.298349" | ""     | "0.000006"         |
+
 
 Partition function for Te = 5 eV: Z = 117.92
-```
 
 
 #### Fetching ionization energies
@@ -351,15 +355,115 @@ The fetch function expects the following parameters:
 
 For more information regarding the form details and output see [NIST ionization energies form](https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html).
 
-Example output:
+Example output (truncated):
 
-```
-At. num Sp. Name        Ion Charge      El. Name        Isoel. Seq.     Ground Shells (a)       Ground Config.  Ground Level    Ionized Level   Prefix  Ionization Energy (1/cm)        Suffix Uncertainty (1/cm)
-"47"    "Ag I"  "0"     "Silver"        "Ag"    "[Kr].4d10.5s"  "4d10.5s"       "2S<1/2>"       "4d10 1S<0>"    ""      "61106.45"      ""      "0.20"
-Notes:
+| At. num | Sp. Name | Ion Charge | El. Name | Isoel. Seq. | Ground Shells (a)      | Ground Config. | Ground Level | Ionized Level | Prefix | Ionization Energy (1/cm) | Suffix | Uncertainty (1/cm) |
+| ------- | -------- | ---------- | -------- | ------------ | ---------------------- | -------------- | ------------ | ------------- | ------ | ----------------------- | ------ | ------------------ |
+| "47"    | "Ag I"   | "0"        | "Silver" | "Ag"         | "[Kr].4d10.5s"         | "4d10.5s"      | "2S<1/2>"    | "4d10 1S<0>"  | ""     | "61106.45"              | ""     | "0.20"             |
+
 (a) Designations used in the ground shell lists:
      [Kr] = 1s2.2s2.2p6.3s2.3p6.3d10.4s2.4p6
+
+### Parsing fetched data
+
+Data parsers are available to safely load and process the fetched data, which makes it possible to easily integrate NIST querying with other python codes.
+
+The fetched tables are parsed into [pandas dataframes](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html), which is the only supported way, currently.
+
+#### Parse atomic lines data
+
+Atomic lines data can be parsed using the AtomicLinesParser class the following way:
+
 ```
+from spark_mec_bp.nist import fetchers, parsers
+
+new_fetcher = fetchers.AtomicLinesFetcher()
+
+atomic_lines_data = new_fetcher.fetch(
+    spectrum="Ag I",
+    lower_wavelength=400,
+    upper_wavelength=800
+)
+
+new_parser = parsers.AtomicLinesParser()
+parsed_data = new_parser.parse_atomic_lines(atomic_lines_data)
+
+print(parsed_data)
+```
+
+Exampe output (truncated):
+
+| obs_wl_air(nm) | ritz_wl_air(nm) | unc_ritz_wl | obs-ritz | wn(cm-1) | Aki(s^-1) | fik | J_i | conf_k  | term_k | J_k | g_i | g_k | Type |
+| -------------- | --------------- | ----------- | -------- | -------- | --------- | --- | --- | ------- | ------ | --- | --- | --- | ---- |
+| 405.5476      | 405.547500      | 0.000030    | 0.0001   | 24651.060 | NaN       | NaN | 1/2 | 4d10.6d | 2D     | 3/2 | 2.0 | 4.0 | NaN  |
+| 408.3430      | NaN             | NaN         | NaN      | 24482.300 | NaN       | NaN | NaN | NaN     | NaN    | NaN | NaN | NaN | NaN  |
+| 421.0960      | 421.095420      | 0.000050    | 0.0006   | 23740.870 | NaN       | NaN | 3/2 | 4d10.6d | 2D     | 5/2 | 4.0 | 6.0 | NaN  |
+
+#### Parse atomic levels data
+
+Atomic levels data can be parsed using the AtomicLevelsParser class the following way:
+
+
+```
+from spark_mec_bp.nist import fetchers, parsers
+
+new_fetcher = fetchers.AtomicLevelsFetcher()
+
+atomic_levels_data = new_fetcher.fetch(
+    spectrum="Ag I",
+    temperature=5
+)
+
+new_parser = parsers.AtomicLevelsParser()
+parsed_data = new_parser.parse_atomic_levels(atomic_levels_data)
+partition_function = new_parser.parse_partition_function(atomic_levels_data)
+
+print(parsed_data)
+print(partition_function)
+```
+
+Example output for table (truncated):
+| Configuration | Term | J    | g   | Prefix | Level (cm-1)  | Suffix | Uncertainty (cm-1) |
+| ------------- | ---- | ---- | --- | ------ | ------------- | ------ | ------------------ |
+| 4d10.5s       | 2S   | 1/2  | 2.0 | NaN    | 0.000000      | NaN    | NaN                |
+| 4d10.5p       | 2P*  | 1/2  | 2.0 | NaN    | 29552.057410  | NaN    | 0.000140           |
+| 4d10.5p       | 2P*  | 3/2  | 4.0 | NaN    | 30472.665160  | NaN    | 0.000220           |
+| 4d9.5s2       | 2D   | 5/2  | 6.0 | NaN    | 30242.298349  | NaN    | 0.000006           |
+| 4d9.5s2       | 2D   | 3/2  | 4.0 | NaN    | 34714.226430  | NaN    | 0.000100           |
+
+Example output for partition function:
+```
+117.92
+```
+
+
+#### Parse ionization energy data
+
+Ionization energy data can be parsed using the IonizationEnergyParser class the following way:
+
+```
+from spark_mec_bp.nist import fetchers, parsers
+
+new_fetcher = fetchers.IonizationEnergyFetcher()
+
+ionization_energy_data = new_fetcher.fetch(
+    spectrum="Ag I",
+)
+print(ionization_energy_data.data)
+
+new_parser = parsers.IonizationEnergyParser()
+parsed_data = new_parser.parse_ionization_energy(ionization_energy_data)
+
+print(parsed_data)
+
+```
+
+Exampe output:
+
+| At. num | Sp. Name | Ion Charge | El. Name | Isoel. Seq. | Ground Shells (a) | Ground Config. | Ground Level | Ionized Level | Prefix | Ionization Energy (1/cm) | Suffix | Uncertainty (1/cm) |
+| ------- | -------- | ---------- | -------- | ------------ | ----------------- | -------------- | ------------ | ------------- | ------ | ----------------------- | ------ | ------------------ |
+| 47      | Ag I     | 0.0        | Silver   | Ag           | [Kr].4d10.5s      | 4d10.5s        | 2S<1/2>      | 4d10 1S<0>    | NaN    | 61106.45                | NaN    | 0.2                |
+
 
 
 ## License
