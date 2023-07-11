@@ -2,7 +2,7 @@
 
 
 ## What is it?
-
+<style>body {text-align: justify}</style>
 Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduce the number concentration ratio of two elements present in a spark discharge plasma employed for binary NP generation in the gas phase. It is aimed to provide a tool for investigating the evolution of the concentration ratio corresponding to the ablated electrode materials in spark-based NP generators under real operational conditions. The method is based on the construction of a Boltzmann plot for the spectral line intensity ratios at every combination. The produced plots (the so-called multi-element combinatory Boltzmann plots, MEC-BPs) are directly related to the LTE plasma temperature and the number concentration ratio of the neutral atoms. The total concentration ratio – including ions – is calculated from a simple plasma model, without requiring further measurements.
 
 ## Table of Contents
@@ -122,7 +122,7 @@ The **AppConfig** itself can be configured with instances of the following confi
     * ***ion_name***: ion form of the target species
     * ***target_peaks***: list of peaks to be used for concentration calculation
 
-    :warning: ***As the program uses the NIST database to query atomic data, this field has to conform with NIST query conventions. For more information see: https://physics.nist.gov/PhysRefData/ASD/lines_form.html***
+    :warning: ***As the program uses the NIST database to query atomic data, atom and ion name parameters must conform with NIST query conventions. For more information see: https://physics.nist.gov/PhysRefData/ASD/lines_form.html***
 -  **CarrierGasConfig**: parameters related to the carrier gas. Used for electron concentration estimation.
     ```
     CarrierGasConfig(
@@ -259,6 +259,8 @@ plotter.plot_voigt_fit("Ag I", result.second_species_integrals_data.fits)
 
 The software can also be used to fetch data directly from NIST.
 All three forms (atomic lines data, atomic levels data, ionization energies) can be fetched, although some limitations are still present compared to the capabilities of the online forms.
+
+:warning: ***As the program uses the NIST database to query atomic data, spectrum parameter must conform with NIST query conventions. For more information see: https://physics.nist.gov/PhysRefData/ASD/lines_form.html***
 
 #### Fetching atomic lines data
 
