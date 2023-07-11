@@ -2,9 +2,11 @@
 
 
 ## What is it?
+
 <p align="justify">
 Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduce the number concentration ratio of two elements present in a spark discharge plasma employed for binary NP generation in the gas phase. It is aimed to provide a tool for investigating the evolution of the concentration ratio corresponding to the ablated electrode materials in spark-based NP generators under real operational conditions. The method is based on the construction of a Boltzmann plot for the spectral line intensity ratios at every combination. The produced plots (the so-called multi-element combinatory Boltzmann plots, MEC-BPs) are directly related to the LTE plasma temperature and the number concentration ratio of the neutral atoms. The total concentration ratio – including ions – is calculated from a simple plasma model, without requiring further measurements.
 </p>
+
 ## Table of Contents
 
 - [Installation](#installation-from-sources)
@@ -198,8 +200,9 @@ print(result.second_species_integrals_data.fits[0].intensities)
 
 #### Validation and plotting
 
-
+<p align="justify">
 To validate the results the lin pair deviations can be checked using the LinePairChecker class:
+</p>
 
 ```
 from spark-mec-bp.validation import LinePairChecker
@@ -259,10 +262,13 @@ plotter.plot_voigt_fit("Ag I", result.second_species_integrals_data.fits)
 
 ### Fetching data
 
+<p align="justify">
 The software can also be used to fetch data directly from NIST.
 All three forms (atomic lines data, atomic levels data, ionization energies) can be fetched, although some limitations are still present compared to the capabilities of the online forms.
 
 :warning: ***As the program uses the NIST database to query atomic data, spectrum parameter must conform with NIST query conventions. For more information see: https://physics.nist.gov/PhysRefData/ASD/lines_form.html***
+
+</p>
 
 #### Fetching atomic lines data
 
@@ -370,9 +376,11 @@ Example output (truncated):
 
 ### Parsing fetched data
 
+<p align="justify">
 Data parsers are available to safely load and process the fetched data, which makes it possible to easily integrate NIST querying with other python codes.
 
 The fetched tables are parsed into [pandas dataframes](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html), which is the only supported way, currently.
+</p>
 
 #### Parse atomic lines data
 
