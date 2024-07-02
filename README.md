@@ -7,6 +7,8 @@
 Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduce the number concentration ratio of two elements present in a spark discharge plasma employed for binary NP generation in the gas phase. It is aimed to provide a tool for investigating the evolution of the concentration ratio corresponding to the ablated electrode materials in spark-based NP generators under real operational conditions. The method is based on the construction of a Boltzmann plot for the spectral line intensity ratios at every combination. The produced plots (the so-called multi-element combinatory Boltzmann plots, MEC-BPs) are directly related to the LTE plasma temperature and the number concentration ratio of the neutral atoms. The total concentration ratio – including ions – is calculated from a simple plasma model, without requiring further measurements.
 </p>
 
+More in our article [here](https://doi.org/10..1177/00037028231207358).
+
 ## Table of Contents
 
 - [Installation](#installation-from-sources)
@@ -27,6 +29,7 @@ Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduc
             - [Parse ionization energy data](#parse-ionization-energy-data)
 - [License](#license)
 - [Getting Help](#getting-help)
+- [Cite]($cite)
 
 
 ## Installation
@@ -282,9 +285,9 @@ Atomic lines data can be fetched using the AtomicLinesFetcher class:
 ```
 from spark_mec_bp.nist import fetchers
 
-new_fetcher = fetchers.AtomicLinesFetcher()
+atomic_lines_fetcher = fetchers.AtomicLinesFetcher()
 
-atomic_lines_data = new_fetcher.fetch(
+atomic_lines_data = atomic_lines_fetcher.fetch(
     spectrum="Ag I", lower_wavelength=400, upper_wavelength=800
 )
 
@@ -316,10 +319,10 @@ Atomic levels data can be fetched using the AtomicLevelsFetcher class:
 ```
 from spark_mec_bp.nist import fetchers
 
-new_fetcher = fetchers.AtomicLevelsFetcher()
+atomic_levels_fetcher = fetchers.AtomicLevelsFetcher()
 
-atomic_levels_data = new_fetcher.fetch(
-    "Ag I", lower_wavelength=400, upper_wavelength=800
+atomic_levels_data = atomic_levels_fetcher.fetch(
+    "Ag I", temperature=2
 )
 
 print(atomic_levels_data.data)
@@ -354,9 +357,9 @@ The ionization energies form can also be fetched using the IonizationEnergiesFet
 ```
 from spark_mec_bp.nist import fetchers
 
-new_fetcher = fetchers.IonizationEnergyFetcher()
+ionization_energy_fetcher = fetchers.IonizationEnergyFetcher()
 
-ionization_energies_data = new_fetcher.fetch(
+ionization_energies_data = ionization_energy_fetcher.fetch(
     spectrum="Ag I"
 )
 
@@ -394,16 +397,16 @@ Atomic lines data can be parsed using the AtomicLinesParser class the following 
 ```
 from spark_mec_bp.nist import fetchers, parsers
 
-new_fetcher = fetchers.AtomicLinesFetcher()
+atomic_lines_fetcher = fetchers.AtomicLinesFetcher()
 
-atomic_lines_data = new_fetcher.fetch(
+atomic_lines_data = atomic_lines_fetcher.fetch(
     spectrum="Ag I",
     lower_wavelength=400,
     upper_wavelength=800
 )
 
-new_parser = parsers.AtomicLinesParser()
-parsed_data = new_parser.parse_atomic_lines(atomic_lines_data)
+atomic_lines_parser = parsers.AtomicLinesParser()
+parsed_data = atomic_lines_parser.parse_atomic_lines(atomic_lines_data)
 
 print(parsed_data)
 ```
@@ -424,16 +427,16 @@ Atomic levels data can be parsed using the AtomicLevelsParser class the followin
 ```
 from spark_mec_bp.nist import fetchers, parsers
 
-new_fetcher = fetchers.AtomicLevelsFetcher()
+atomic_levels_fetcher = fetchers.AtomicLevelsFetcher()
 
-atomic_levels_data = new_fetcher.fetch(
+atomic_levels_data = atomic_levels_fetcher.fetch(
     spectrum="Ag I",
     temperature=5
 )
 
-new_parser = parsers.AtomicLevelsParser()
-parsed_data = new_parser.parse_atomic_levels(atomic_levels_data)
-partition_function = new_parser.parse_partition_function(atomic_levels_data)
+atomic_levels_parser = parsers.AtomicLevelsParser()
+parsed_data = atomic_levels_parser.parse_atomic_levels(atomic_levels_data)
+partition_function = atomic_levels_parser.parse_partition_function(atomic_levels_data)
 
 print(parsed_data)
 print(partition_function)
@@ -461,15 +464,15 @@ Ionization energy data can be parsed using the IonizationEnergyParser class the 
 ```
 from spark_mec_bp.nist import fetchers, parsers
 
-new_fetcher = fetchers.IonizationEnergyFetcher()
+ionization_energy_fetcher = fetchers.IonizationEnergyFetcher()
 
-ionization_energy_data = new_fetcher.fetch(
+ionization_energy_data = ionization_energy_fetcher.fetch(
     spectrum="Ag I",
 )
 print(ionization_energy_data.data)
 
-new_parser = parsers.IonizationEnergyParser()
-parsed_data = new_parser.parse_ionization_energy(ionization_energy_data)
+ionization_energy_parser = parsers.IonizationEnergyParser()
+parsed_data = ionization_energy_parser.parse_ionization_energy(ionization_energy_data)
 
 print(parsed_data)
 
@@ -491,3 +494,12 @@ Exampe output:
 If you have general or usage questions or having trouble using the program, feel free to open an issue.
 
 If you have technical/scientific questions contact [us](mailto:akohut@titan.physx.u-szeged.hu).
+
+## Citation
+
+If you use our program in your research or project, please consider citing our article:
+
+Kohut, A., Villy, L. P., Kohut, G., Galbács, G., & Geretovszky, Z. (2023). A Calibration-Free Optical Emission Spectroscopic Method to Determine the Composition of a Spark Discharge Plasma Used for AuAg Binary Nanoparticle Synthesis. *Applied Spectroscopy*, 77(12), 1401–1410.
+
+
+You can find the full article [here](https://doi.org/10.1177/00037028231207358).
