@@ -9,6 +9,8 @@ Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduc
 
 More in our article [here](https://opg.optica.org/as/abstract.cfm?uri=as-77-12-1401).
 
+If you use this software, please [cite](#citation).
+
 ## Table of Contents
 
 - [Installation](#installation-from-sources)
