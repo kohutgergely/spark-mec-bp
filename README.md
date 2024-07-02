@@ -7,7 +7,7 @@
 Spark Multi-element Combinatory Boltzmann Plot is an OES-based approach to deduce the number concentration ratio of two elements present in a spark discharge plasma employed for binary NP generation in the gas phase. It is aimed to provide a tool for investigating the evolution of the concentration ratio corresponding to the ablated electrode materials in spark-based NP generators under real operational conditions. The method is based on the construction of a Boltzmann plot for the spectral line intensity ratios at every combination. The produced plots (the so-called multi-element combinatory Boltzmann plots, MEC-BPs) are directly related to the LTE plasma temperature and the number concentration ratio of the neutral atoms. The total concentration ratio – including ions – is calculated from a simple plasma model, without requiring further measurements.
 </p>
 
-More in our article [here](https://doi.org/10..1177/00037028231207358).
+More in our article [here](https://opg.optica.org/as/abstract.cfm?uri=as-77-12-1401).
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ More in our article [here](https://doi.org/10..1177/00037028231207358).
             - [Parse ionization energy data](#parse-ionization-energy-data)
 - [License](#license)
 - [Getting Help](#getting-help)
-- [Cite]($cite)
+- [Citation](#citation)
 
 
 ## Installation

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spark-mec-bp"
-version = "0.3.0"
+version = "0.1.2"
 description = "Spark Multi-element Combinatory Boltzmann Plots"
 authors = [
     {name = "Attila Kohut", email = "akohut@titan.physx.u-szeged.hu"},
